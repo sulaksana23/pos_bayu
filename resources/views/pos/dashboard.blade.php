@@ -159,7 +159,7 @@
                     @php
                         $pct = $chartMax > 0 ? max(4, round(($day['sales'] / $chartMax) * 100)) : 4;
                         $isToday = $loop->last;
-                        $px = round($pct * 1.6); {{-- 160px * pct/100 --}}
+                        $px = round($pct * 1.6);
                     @endphp
                     <div class="group relative flex flex-1 flex-col items-center justify-end"
                          style="height: 100%"
