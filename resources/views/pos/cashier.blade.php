@@ -5,12 +5,17 @@
     <div
         x-data="posCashier(@js($categories->pluck('name','id')->toArray() + ['__all__' => 'Semua']))"
         x-init="init()"
-        class="flex flex-col gap-4 overflow-y-auto p-4 lg:grid lg:h-full lg:grid-cols-5 lg:overflow-hidden lg:p-4"
+        class="flex h-full flex-col"
     >
-        {{-- LEFT: Products --}}
-        <div
-            class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3"
-        >
+        {{-- MAIN CONTENT AREA --}}
+        <div class="relative min-h-0 flex-1 lg:grid lg:grid-cols-5 lg:gap-4 lg:p-4">
+
+            {{-- LEFT: Products (mobile: full screen panel) --}}
+            <div
+                x-show="mobileTab === 'products'"
+                x-cloak
+                class="flex h-full flex-col overflow-hidden bg-white lg:!flex lg:col-span-3 lg:rounded-xl lg:border lg:border-gray-200 lg:shadow-sm"
+            >
             <div class="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100 p-4">
                 <div class="relative">
                     <i
@@ -108,12 +113,14 @@
             </div>
         </div>
 
-        {{-- RIGHT: Cart + Payment --}}
+        {{-- RIGHT: Cart + Payment (mobile: full screen panel) --}}
         <div
-            class="flex flex-col gap-3 lg:col-span-2"
+            x-show="mobileTab === 'cart'"
+            x-cloak
+            class="flex h-full flex-col gap-3 overflow-y-auto p-0 lg:!flex lg:col-span-2 lg:overflow-visible lg:p-0"
         >
             <div
-                class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:flex-1"
+                class="flex flex-col overflow-hidden bg-white lg:flex-1 lg:rounded-xl lg:border lg:border-gray-200 lg:shadow-sm"
             >
                 <div
                     class="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white p-4"
@@ -352,6 +359,39 @@
                 </div>
             </div>
         </div>
+
+        {{-- MOBILE BOTTOM TAB BAR --}}
+        <div class="no-print shrink-0 border-t border-gray-200 bg-white lg:hidden">
+            <div class="flex">
+                <button
+                    @click="mobileTab = 'products'"
+                    :class="mobileTab === 'products'
+                        ? 'text-blue-600 border-t-2 border-blue-500'
+                        : 'text-gray-500 border-t-2 border-transparent'"
+                    class="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs font-semibold transition-colors"
+                >
+                    <i class="fas fa-th-large text-lg"></i>
+                    <span>Produk</span>
+                </button>
+                <button
+                    @click="mobileTab = 'cart'"
+                    :class="mobileTab === 'cart'
+                        ? 'text-blue-600 border-t-2 border-blue-500'
+                        : 'text-gray-500 border-t-2 border-transparent'"
+                    class="relative flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs font-semibold transition-colors"
+                >
+                    <span class="relative inline-block">
+                        <i class="fas fa-shopping-cart text-lg"></i>
+                        <span
+                            x-show="cart.length > 0"
+                            x-text="cart.length"
+                            class="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-bold text-white"
+                        ></span>
+                    </span>
+                    <span>Keranjang</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     @push ('scripts')
@@ -368,6 +408,7 @@
                     paymentMethod: 'cash',
                     cashTendered: 0,
                     loading: false,
+                    mobileTab: 'products',
                     init() {
                         window.addEventListener('keydown', this.handleKey.bind(this));
                         this.focusSearch();
