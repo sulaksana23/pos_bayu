@@ -151,26 +151,34 @@
                     <i class="fas fa-chart-bar mr-1"></i> 7 Hari
                 </span>
             </div>
+            @php
+                $chartMax = max(1, collect($weeklyTrend)->max('sales'));
+            @endphp
             <div class="flex h-40 items-end gap-1 sm:gap-1.5">
-                @php $maxSales = max(1, collect($weeklyTrend)->max('sales')); @endphp
                 @foreach($weeklyTrend as $day)
                     @php
-                        $height = $maxSales > 0 ? max(5, round(($day['sales'] / $maxSales) * 100)) : 5;
+                        $pct = $chartMax > 0 ? max(4, round(($day['sales'] / $chartMax) * 100)) : 4;
                         $isToday = $loop->last;
+                        $px = round($pct * 1.6); {{-- 160px * pct/100 --}}
                     @endphp
-                    <div class="group relative flex flex-1 flex-col items-center gap-1" x-data="{ tt: false }">
+                    <div class="group relative flex flex-1 flex-col items-center justify-end"
+                         style="height: 100%"
+                         x-data="{ tt: false }">
+                        {{-- Tooltip --}}
                         <div x-show="tt" x-cloak
-                             class="absolute bottom-full mb-2 z-10 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-xl pointer-events-none">
+                             class="absolute bottom-full mb-2 z-10 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-xl pointer-events-none"
+                             style="left:50%;transform:translateX(-50%)">
                             <p class="font-semibold">{{ $day['date'] }}</p>
                             <p>Rp {{ number_format($day['sales'], 0, ',', '.') }}</p>
                             <p class="text-gray-300">{{ $day['count'] }} transaksi</p>
                         </div>
-                        <div class="w-full cursor-pointer rounded-t-md transition-all duration-200 hover:opacity-75 {{ $isToday ? 'bg-gradient-to-t from-orange-500 to-rose-400 shadow-sm shadow-orange-500/40' : 'bg-orange-100 hover:bg-orange-200' }}"
-                             style="height: {{ $height }}%"
+                        {{-- Bar --}}
+                        <div class="w-full cursor-pointer rounded-t-lg transition-all duration-300 hover:opacity-80 {{ $isToday ? 'bg-gradient-to-t from-orange-500 to-rose-400 shadow-sm shadow-orange-500/40' : 'bg-orange-200 hover:bg-orange-300' }}"
+                             style="height: {{ $px }}px"
                              @mouseenter="tt = true" @mouseleave="tt = false"
                              @touchstart.prevent="tt = !tt">
                         </div>
-                        <span class="text-[9px] font-semibold {{ $isToday ? 'text-orange-600' : 'text-gray-400' }}">
+                        <span class="mt-1 text-[9px] font-semibold {{ $isToday ? 'text-orange-600' : 'text-gray-400' }}">
                             {{ $day['day'] }}
                         </span>
                     </div>
