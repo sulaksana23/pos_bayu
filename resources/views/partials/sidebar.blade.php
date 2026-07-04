@@ -1,5 +1,7 @@
 @php
     $isAdmin = auth()->user()?->isAdmin();
+    $isManager = auth()->user()?->isManager();
+    $canManage = auth()->user()?->canManageInventory();
 @endphp
 <div
     id="sidebarBackdrop"
@@ -10,66 +12,97 @@
     id="posSidebar"
     class="scroll-thin fixed top-16 bottom-0 left-0 z-20 w-64 -translate-x-full transform overflow-y-auto border-r border-gray-200 bg-white transition-transform duration-200 lg:translate-x-0"
 >
-    <nav class="space-y-1 p-4">
+    <nav class="space-y-0.5 p-4">
+
+        {{-- Operasional --}}
         <p class="mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Operasional</p>
-        <a
-            href="{{ route('pos.dashboard') }}"
-            class="sidebar-link {{ request()->routeIs('pos.dashboard') ? 'active' : '' }}"
-        >
-            <i
-                class="fas fa-chart-line w-5 text-center {{ request()->routeIs('pos.dashboard') ? 'text-white' : 'text-gray-400' }}"
-            ></i>
+        <a href="{{ route('pos.dashboard') }}"
+            class="sidebar-link {{ request()->routeIs('pos.dashboard') ? 'active' : '' }}">
+            <i class="fas fa-chart-line w-5 text-center"></i>
             <span>Dashboard</span>
         </a>
-        <a
-            href="{{ route('pos.cashier.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.cashier.*') ? 'active' : '' }}"
-        >
-            <i
-                class="fas fa-cash-register w-5 text-center {{ request()->routeIs('pos.cashier.*') ? 'text-white' : 'text-gray-400' }}"
-            ></i>
+        <a href="{{ route('pos.cashier.index') }}"
+            class="sidebar-link {{ request()->routeIs('pos.cashier.*') ? 'active' : '' }}">
+            <i class="fas fa-cash-register w-5 text-center"></i>
             <span>Kasir</span>
         </a>
-        <a
-            href="{{ route('pos.shifts.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.shifts.*') ? 'active' : '' }}"
-        >
-            <i
-                class="fas fa-business-time w-5 text-center {{ request()->routeIs('pos.shifts.*') ? 'text-white' : 'text-gray-400' }}"
-            ></i>
+        <a href="{{ route('pos.shifts.index') }}"
+            class="sidebar-link {{ request()->routeIs('pos.shifts.*') ? 'active' : '' }}">
+            <i class="fas fa-business-time w-5 text-center"></i>
             <span>Shift</span>
         </a>
 
-        <p class="mt-6 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Manajemen</p>
-        <a
-            href="{{ route('pos.inventory.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.inventory.*') ? 'active' : '' }}"
-        >
-            <i
-                class="fas fa-boxes-stacked w-5 text-center {{ request()->routeIs('pos.inventory.*') ? 'text-white' : 'text-gray-400' }}"
-            ></i>
+        {{-- Katalog --}}
+        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Katalog</p>
+        <a href="{{ route('pos.products.index') }}"
+            class="sidebar-link {{ request()->routeIs('pos.products.*') ? 'active' : '' }}">
+            <i class="fas fa-box w-5 text-center"></i>
+            <span>Produk</span>
+        </a>
+        <a href="{{ route('pos.categories.index') }}"
+            class="sidebar-link {{ request()->routeIs('pos.categories.*') ? 'active' : '' }}">
+            <i class="fas fa-tag w-5 text-center"></i>
+            <span>Kategori</span>
+        </a>
+        <a href="{{ route('pos.inventory.index') }}"
+            class="sidebar-link {{ request()->routeIs('pos.inventory.*') ? 'active' : '' }}">
+            <i class="fas fa-boxes-stacked w-5 text-center"></i>
             <span>Stok & Gudang</span>
         </a>
-        <a
-            href="{{ route('pos.accounting.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.accounting.*') ? 'active' : '' }}"
-        >
-            <i
-                class="fas fa-calculator w-5 text-center {{ request()->routeIs('pos.accounting.*') ? 'text-white' : 'text-gray-400' }}"
-            ></i>
-            <span>Akunting</span>
+        <a href="{{ route('pos.customers.index') }}"
+            class="sidebar-link {{ request()->routeIs('pos.customers.*') ? 'active' : '' }}">
+            <i class="fas fa-users w-5 text-center"></i>
+            <span>Pelanggan</span>
         </a>
 
-        <p class="mt-6 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Akun</p>
-        <a
-            href="https://balitechsolution.com/admin/dashboard"
-            class="sidebar-link text-blue-600 hover:!bg-blue-50 hover:!text-blue-700"
-            target="_blank"
-            rel="noopener"
-        >
-            <i class="fas fa-arrow-up-right-from-square w-5 text-center text-blue-500"></i>
-            <span>Admin Panel utama</span>
+        {{-- Laporan & Keuangan --}}
+        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Keuangan</p>
+        <a href="{{ route('pos.accounting.index') }}"
+            class="sidebar-link {{ request()->routeIs('pos.accounting.index') ? 'active' : '' }}">
+            <i class="fas fa-calculator w-5 text-center"></i>
+            <span>Akunting</span>
         </a>
+        <a href="{{ route('pos.accounting.cash-drawer') }}"
+            class="sidebar-link {{ request()->routeIs('pos.accounting.cash-drawer') ? 'active' : '' }}">
+            <i class="fas fa-cash-register w-5 text-center"></i>
+            <span>Laci Kas</span>
+        </a>
+
+        {{-- Laporan --}}
+        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Laporan</p>
+        <a href="{{ route('pos.reports.sales') }}"
+            class="sidebar-link {{ request()->routeIs('pos.reports.sales') ? 'active' : '' }}">
+            <i class="fas fa-chart-bar w-5 text-center"></i>
+            <span>Lap. Penjualan</span>
+        </a>
+        <a href="{{ route('pos.reports.products') }}"
+            class="sidebar-link {{ request()->routeIs('pos.reports.products') ? 'active' : '' }}">
+            <i class="fas fa-chart-pie w-5 text-center"></i>
+            <span>Lap. Produk</span>
+        </a>
+        <a href="{{ route('pos.reports.customers') }}"
+            class="sidebar-link {{ request()->routeIs('pos.reports.customers') ? 'active' : '' }}">
+            <i class="fas fa-user-chart w-5 text-center"></i>
+            <span>Lap. Pelanggan</span>
+        </a>
+        <a href="{{ route('pos.reports.inventory') }}"
+            class="sidebar-link {{ request()->routeIs('pos.reports.inventory') ? 'active' : '' }}">
+            <i class="fas fa-warehouse w-5 text-center"></i>
+            <span>Lap. Inventaris</span>
+        </a>
+
+        {{-- Admin --}}
+        @if ($isAdmin)
+        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Admin</p>
+        <a href="{{ route('pos.users.index') }}"
+            class="sidebar-link {{ request()->routeIs('pos.users.*') ? 'active' : '' }}">
+            <i class="fas fa-user-cog w-5 text-center"></i>
+            <span>Pengguna</span>
+        </a>
+        @endif
+
+        {{-- Akun --}}
+        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Akun</p>
         <button
             type="button"
             onclick="document.getElementById('logout-form').submit()"
@@ -82,16 +115,12 @@
 
     @isset ($currentShift)
         @if ($currentShift)
-            <div
-                class="m-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-3 text-white shadow-lg shadow-emerald-500/30"
-            >
+            <div class="m-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-3 text-white shadow-lg shadow-emerald-500/30">
                 <p class="text-[10px] tracking-wider uppercase opacity-80">Shift Aktif</p>
                 <p class="mt-0.5 text-lg font-bold">{{ $currentShift->opened_at->format('H:i') }} WITA</p>
                 <p class="mt-1 text-xs opacity-80">{{ $currentShift->user->name }}</p>
-                <a
-                    href="{{ route('pos.shifts.index') }}"
-                    class="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/15 px-2 py-1.5 text-[11px] font-semibold backdrop-blur transition hover:bg-white/25"
-                >
+                <a href="{{ route('pos.shifts.index') }}"
+                    class="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/15 px-2 py-1.5 text-[11px] font-semibold backdrop-blur transition hover:bg-white/25">
                     Tutup shift <i class="fas fa-arrow-right text-[10px]"></i>
                 </a>
             </div>
@@ -104,16 +133,20 @@
         display: flex;
         align-items: center;
         gap: 0.625rem;
-        padding: 0.625rem 0.875rem;
+        padding: 0.5rem 0.875rem;
         font-size: 0.8125rem;
         font-weight: 500;
         color: #4b5563;
         border-radius: 0.625rem;
         transition: all 0.15s ease;
+        text-decoration: none;
     }
     .sidebar-link:hover:not(.active):not(.text-blue-600):not(.text-red-600) {
         background: #f3f4f6;
         color: #111827;
+    }
+    .sidebar-link:hover:not(.active) i {
+        color: #6b7280;
     }
     .sidebar-link.active {
         background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
@@ -122,6 +155,10 @@
     }
     .sidebar-link.active i {
         color: white !important;
+    }
+    .sidebar-link i {
+        color: #9ca3af;
+        transition: color 0.15s ease;
     }
     @media (max-width: 1023.98px) {
         #posSidebar.sidebar-open {
