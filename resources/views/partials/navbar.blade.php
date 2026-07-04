@@ -15,7 +15,7 @@
                     <i class="fas fa-cash-register text-sm text-white"></i>
                 </div>
                 <div class="min-w-0">
-                    <p class="truncate text-sm font-bold text-gray-800">{{ config('app.name', 'GHouse POS') }}</p>
+                    <p class="truncate text-sm font-bold text-gray-800">{{ config('app.name', 'BaliPOS') }}</p>
                     <p class="-mt-1 text-[10px] text-gray-400">
                         <span class="font-semibold text-orange-500">v{{ config('app.version', '1.0.0') }}</span>
                         &middot; <span class="hidden sm:inline">by <a href="https://balitechsolution.com" class="font-semibold hover:text-orange-500">Balitech Solution</a></span>
