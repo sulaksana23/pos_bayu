@@ -15,7 +15,8 @@ class UserController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = $request->string('q')->toString();
+        $q    = $request->string('q')->toString();
+        $role = $request->string('role')->toString();
 
         $users = User::query()
             ->when($q !== '', fn ($query) => $query->where(function ($w) use ($q) {
@@ -23,11 +24,12 @@ class UserController extends Controller
                   ->orWhere('email', 'like', "%{$q}%")
                   ->orWhere('phone', 'like', "%{$q}%");
             }))
+            ->when($role !== '', fn ($query) => $query->where('role', $role))
             ->latest()
             ->paginate(20)
             ->withQueryString();
 
-        return view('pos.users.index', compact('users', 'q'));
+        return view('pos.users.index', compact('users', 'q', 'role'));
     }
 
     public function create(): View
