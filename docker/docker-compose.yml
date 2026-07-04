@@ -1,0 +1,48 @@
+services:
+  pos-app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: balitech-pos-app
+    restart: unless-stopped
+    volumes:
+      - ..:/var/www/pos
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_KEY=base64:Ounadfs1LypUUXoqKg5iUwixgnSvKuJKmvPibMhPiKI=
+      - DB_CONNECTION=pgsql
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5433
+      - DB_DATABASE=devstack
+      - DB_USERNAME=devstack
+      - DB_PASSWORD=secretpassword
+      # Session configuration untuk shared auth
+      - SESSION_DRIVER=redis
+      - SESSION_DOMAIN=.balitechsolution.com
+      - SESSION_SECURE_COOKIE=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=null
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - pos-network
+
+  pos-nginx:
+    image: nginx:alpine
+    container_name: balitech-pos-nginx
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ..:/var/www/pos:ro
+    depends_on:
+      - pos-app
+    networks:
+      - pos-network
+
+networks:
+  pos-network:
+    driver: bridge

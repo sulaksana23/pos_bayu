@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="csrf-token" content="demo-token" />
+    <title>POS Demo - DevStack Kasir</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0ea5e9',
+                        dark: '#0f172a',
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        .scroll-thin::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .scroll-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scroll-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .scroll-thin::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.2s ease-out;
+        }
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-area,
+            .print-area * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 80mm;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50">
+    <!-- Modern Header -->
+    <header class="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
+        <div class="px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500 text-white"
+                    >
+                        <i class="fas fa-store text-sm"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold text-slate-900">DevStack POS</h1>
+                        <p class="text-xs text-slate-500">Demo Mode</p>
+                    </div>
+                </div>
+                <a
+                    href="https://balitechsolution.com"
+                    class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                    <i class="fas fa-arrow-left text-xs"></i>
+                    <span class="hidden sm:inline">Kembali</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div
+        x-data="posCashier(@js($categories->pluck('name','id')->toArray() + ['__all__' => 'Semua']))"
+        x-init="init()"
+        class="flex h-[calc(100vh-65px)] flex-col lg:flex-row"
+    >
+        <!-- Left: Products -->
+        <div class="flex flex-1 flex-col border-slate-200 bg-white lg:border-r">
+            <!-- Search & Filters -->
+            <div class="border-b border-slate-200 bg-slate-50 p-4">
+                <div class="relative mb-3">
+                    <i
+                        class="fas fa-search absolute top-1/2 left-3.5 -translate-y-1/2 text-sm text-slate-400"
+                    ></i>
+                    <input
+                        x-ref="searchInput"
+                        x-model.debounce.300ms="query"
+                        type="text"
+                        placeholder="Cari produk (SKU, nama, barcode)..."
+                        class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pr-4 pl-10 text-sm placeholder:text-slate-400 focus:border-transparent focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    />
+                </div>
+                <div class="scroll-thin -mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1">
+                    <button
+                        @click="activeCategory = '__all__'"
+                        :class="activeCategory === '__all__'
+                            ? 'bg-sky-500 text-white'
+                            : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'"
+                        class="shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition"
+                    >
+                        Semua
+                    </button>
+                    @foreach ($categories as $cat)
+                        <button
+                            @click="activeCategory='{{ $cat->id }}'"
+                            :class="activeCategory=='{{ (string)$cat->id }}' ? 'bg-sky-500 text-white' : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'"
+                            class="shrink-0 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition"
+                        >
+                            {{ $cat->name }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="scroll-thin flex-1 overflow-y-auto p-4">
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+                    <template x-for="p in filteredProducts()" :key="p.id">
+                        <button
+                            @click="addToCart(p)"
+                            :disabled="p.stock <= 0"
+                            class="group relative rounded-xl border border-slate-200 bg-white p-3 text-left transition-all hover:border-sky-300 hover:shadow-md focus:ring-2 focus:ring-sky-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <div
+                                class="mb-2 flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-slate-100"
+                            >
+                                <img
+                                    :src="p.image_url"
+                                    :alt="p.name"
+                                    class="h-full w-full object-cover"
+                                    loading="lazy"
+                                    onerror="this.style.display = 'none'"
+                                />
+                                <i
+                                    x-show="!p.image_url"
+                                    class="fas fa-box text-3xl text-slate-300"
+                                ></i>
+                            </div>
+                            <h3
+                                class="mb-1.5 line-clamp-2 min-h-[2.5rem] text-sm font-medium text-slate-900"
+                                x-text="p.name"
+                            ></h3>
+                            <div class="flex items-center justify-between">
+                                <span
+                                    class="text-base font-bold text-sky-600"
+                                    x-text="formatIDR(p.price)"
+                                ></span>
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                    :class="p.stock <= 0
+                                        ? 'bg-red-100 text-red-700'
+                                        : p.stock <= 5
+                                          ? 'bg-amber-100 text-amber-700'
+                                          : 'bg-emerald-100 text-emerald-700'"
+                                    x-text="p.stock"
+                                ></span>
+                            </div>
+                        </button>
+                    </template>
+                    <template x-if="filteredProducts().length === 0">
+                        <div
+                            class="col-span-full flex flex-col items-center justify-center py-16 text-center"
+                        >
+                            <div
+                                class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100"
+                            >
+                                <i class="fas fa-search text-2xl text-slate-400"></i>
+                            </div>
+                            <p class="text-sm font-medium text-slate-600">Tidak ada produk</p>
+                            <p class="mt-1 text-xs text-slate-400" x-show="
+                                    query
+                                ">untuk '<span x-text="query"></span>'</p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Cart -->
+        <div
+            class="flex w-full flex-col border-t border-slate-200 bg-white lg:w-96 lg:border-t-0 lg:border-l"
+        >
+            <!-- Cart Header -->
+            <div class="border-b border-slate-200 bg-slate-50 px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-shopping-cart text-slate-600"></i>
+                        <span class="font-semibold text-slate-900">Keranjang</span>
+                        <span
+                            class="text-xs font-medium text-slate-500"
+                            x-text="'(' + cart.length + ')'"
+                        ></span>
+                    </div>
+                    <button
+                        @click="clearCart()"
+                        x-show="cart.length > 0"
+                        class="rounded px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 hover:text-red-700"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cart Items -->
+            <div class="scroll-thin flex-1 overflow-y-auto px-4 py-2">
+                <template x-for="(item, idx) in cart" :key="item.id + '_' + idx">
+                    <div
+                        class="animate-slide-up mb-2 rounded-lg border border-slate-200 bg-slate-50 p-3"
+                    >
+                        <div class="mb-2 flex items-start justify-between">
+                            <div class="min-w-0 flex-1 pr-2">
+                                <h4
+                                    class="line-clamp-1 text-sm font-medium text-slate-900"
+                                    x-text="item.name"
+                                ></h4>
+                                <p class="mt-0.5 text-xs text-slate-500" x-text="
+                                        formatIDR(item.price)
+                                    "></p>
+                            </div>
+                            <button
+                                @click="removeFromCart(idx)"
+                                class="text-slate-400 transition hover:text-red-600"
+                            >
+                                <i class="fas fa-times text-sm"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div
+                                class="flex items-center gap-1 rounded-lg border border-slate-300 bg-white"
+                            >
+                                <button
+                                    @click="decrementQty(idx)"
+                                    class="px-2.5 py-1.5 text-slate-600 transition hover:bg-slate-50 active:bg-slate-100"
+                                >
+                                    <i class="fas fa-minus text-xs"></i>
+                                </button>
+                                <input
+                                    type="number"
+                                    x-model.number="item.qty"
+                                    @change="clampQty(idx)"
+                                    min="1"
+                                    step="1"
+                                    class="w-12 border-none bg-transparent text-center text-sm font-semibold focus:outline-none"
+                                />
+                                <button
+                                    @click="incrementQty(idx)"
+                                    class="px-2.5 py-1.5 text-slate-600 transition hover:bg-slate-50 active:bg-slate-100"
+                                >
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                            <span
+                                class="text-base font-bold text-slate-900"
+                                x-text="formatIDR(item.qty * item.price)"
+                            ></span>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="cart.length === 0">
+                    <div class="flex h-full flex-col items-center justify-center py-12 text-center">
+                        <div
+                            class="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100"
+                        >
+                            <i class="fas fa-shopping-cart text-3xl text-slate-300"></i>
+                        </div>
+                        <p class="text-sm font-medium text-slate-600">Keranjang Kosong</p>
+                        <p class="mt-1 text-xs text-slate-400">Pilih produk untuk memulai</p>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="space-y-3 border-t-2 border-slate-200 bg-white p-4">
+                <!-- Invoice Number Display -->
+                <div
+                    class="mb-3 rounded-lg border border-sky-200 bg-gradient-to-r from-sky-50 to-blue-50 p-3"
+                >
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-file-invoice text-sky-600"></i>
+                            <span
+                                class="text-xs font-semibold tracking-wide text-slate-700 uppercase"
+                                >No. Invoice</span
+                            >
+                        </div>
+                        <span
+                            class="text-sm font-bold text-sky-600"
+                            x-text="currentInvoiceNo"
+                        ></span>
+                    </div>
+                </div>
+                <!-- Subtotal, Diskon, Tax -->
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between text-slate-600">
+                        <span>Subtotal</span>
+                        <span class="font-medium" x-text="formatIDR(subtotal())"></span>
+                    </div>
+                    <div class="flex items-center justify-between text-slate-600">
+                        <span>Diskon</span>
+                        <input
+                            type="number"
+                            x-model.number="globalDiscount"
+                            min="0"
+                            step="1000"
+                            class="w-28 rounded border border-slate-300 bg-slate-50 px-2 py-1 text-right text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        />
+                    </div>
+                    <div class="flex items-center justify-between text-slate-600">
+                        <span>Pajak</span>
+                        <input
+                            type="number"
+                            x-model.number="tax"
+                            min="0"
+                            step="1000"
+                            class="w-28 rounded border border-slate-300 bg-slate-50 px-2 py-1 text-right text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        />
+                    </div>
+                </div>
+
+                <!-- Total -->
+                <div class="flex items-center justify-between border-t border-slate-200 pt-2">
+                    <span class="text-base font-bold text-slate-900">Total</span>
+                    <span
+                        class="text-2xl font-bold text-sky-600"
+                        x-text="formatIDR(total())"
+                    ></span>
+                </div>
+
+                <!-- Payment Method -->
+                <div>
+                    <label
+                        class="mb-2 block text-xs font-semibold tracking-wide text-slate-700 uppercase"
+                        >Metode Pembayaran</label
+                    >
+                    <div class="grid grid-cols-4 gap-2">
+                        <button
+                            @click="paymentMethod = 'cash'"
+                            :class="paymentMethod === 'cash'
+                                ? 'bg-emerald-500 text-white ring-2 ring-emerald-500 ring-offset-2'
+                                : 'bg-white text-slate-700 border border-slate-300 hover:border-slate-400'"
+                            class="rounded-lg py-2.5 text-xs font-medium transition"
+                        >
+                            <i class="fas fa-money-bill mb-1 block text-lg"></i>
+                            Cash
+                        </button>
+                        <button
+                            @click="paymentMethod = 'qris'"
+                            :class="paymentMethod === 'qris'
+                                ? 'bg-blue-500 text-white ring-2 ring-blue-500 ring-offset-2'
+                                : 'bg-white text-slate-700 border border-slate-300 hover:border-slate-400'"
+                            class="rounded-lg py-2.5 text-xs font-medium transition"
+                        >
+                            <i class="fas fa-qrcode mb-1 block text-lg"></i>
+                            QRIS
+                        </button>
+                        <button
+                            @click="paymentMethod = 'transfer'"
+                            :class="paymentMethod === 'transfer'
+                                ? 'bg-violet-500 text-white ring-2 ring-violet-500 ring-offset-2'
+                                : 'bg-white text-slate-700 border border-slate-300 hover:border-slate-400'"
+                            class="rounded-lg py-2.5 text-xs font-medium transition"
+                        >
+                            <i class="fas fa-bank mb-1 block text-lg"></i>
+                            Bank
+                        </button>
+                        <button
+                            @click="paymentMethod = 'wallet'"
+                            :class="paymentMethod === 'wallet'
+                                ? 'bg-pink-500 text-white ring-2 ring-pink-500 ring-offset-2'
+                                : 'bg-white text-slate-700 border border-slate-300 hover:border-slate-400'"
+                            class="rounded-lg py-2.5 text-xs font-medium transition"
+                        >
+                            <i class="fas fa-wallet mb-1 block text-lg"></i>
+                            Wallet
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cash Input -->
+                <div x-show="paymentMethod === 'cash'" class="space-y-2">
+                    <input
+                        type="number"
+                        x-model.number="cashTendered"
+                        min="0"
+                        step="1000"
+                        placeholder="Jumlah bayar"
+                        class="w-full rounded-lg border-2 border-slate-300 bg-slate-50 px-4 py-3 text-lg font-bold focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                    <div class="grid grid-cols-4 gap-2">
+                        <button
+                            @click="cashTendered = total()"
+                            class="rounded-lg bg-emerald-50 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 active:scale-95"
+                        >
+                            Pas
+                        </button>
+                        <button
+                            @click="cashTendered = Math.ceil(total() / 10000) * 10000"
+                            class="rounded-lg bg-emerald-50 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 active:scale-95"
+                        >
+                            10K
+                        </button>
+                        <button
+                            @click="cashTendered = Math.ceil(total() / 50000) * 50000"
+                            class="rounded-lg bg-emerald-50 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 active:scale-95"
+                        >
+                            50K
+                        </button>
+                        <button
+                            @click="cashTendered = Math.ceil(total() / 100000) * 100000"
+                            class="rounded-lg bg-emerald-50 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 active:scale-95"
+                        >
+                            100K
+                        </button>
+                    </div>
+                    <div
+                        class="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2"
+                    >
+                        <span class="text-sm font-medium text-slate-700">Kembalian</span>
+                        <span
+                            class="text-lg font-bold text-emerald-600"
+                            x-text="formatIDR(Math.max(0, (cashTendered || 0) - total()))"
+                        ></span>
+                    </div>
+                </div>
+
+                <div
+                    x-show="paymentMethod !== 'cash'"
+                    class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2"
+                >
+                    <p class="text-xs text-slate-600">
+                        <i class="fas fa-info-circle mr-1 text-blue-500"></i>
+                        Konfirmasi pembayaran non-tunai terlebih dahulu
+                    </p>
+                </div>
+
+                <!-- Checkout Button -->
+                <button
+                    @click="checkoutDemo()"
+                    :disabled="cart.length === 0 || loading"
+                    class="w-full rounded-xl bg-sky-500 py-4 font-bold text-white shadow-lg shadow-sky-500/30 transition-all hover:bg-sky-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                    <span x-show="!loading" class="flex items-center justify-center gap-2">
+                        <i class="fas fa-check-circle"></i>
+                        Proses Pembayaran
+                    </span>
+                    <span x-show="loading" class="flex items-center justify-center gap-2">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Processing...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div
+        x-show="showReceipt"
+        x-cloak
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+        @click.self="closeReceipt()"
+    >
+        <div
+            x-show="showReceipt"
+            x-cloak
+            x-transition:enter="transition ease-out duration-300 delay-100"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl"
+        >
+            <!-- Receipt Content -->
+            <div class="print-area p-6">
+                <!-- Header -->
+                <div class="mb-6 border-b-2 border-dashed border-slate-300 pb-6 text-center">
+                    <div
+                        class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600"
+                    >
+                        <i class="fas fa-store text-2xl text-white"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900">DevStack POS</h2>
+                    <p class="mt-1 text-sm text-slate-600">Jl. Contoh No. 123, Jakarta</p>
+                    <p class="text-sm text-slate-600">Telp: (021) 1234-5678</p>
+                </div>
+
+                <!-- Invoice Info -->
+                <div class="mb-6 space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-slate-600">No. Invoice:</span>
+                        <span
+                            class="font-bold text-slate-900"
+                            x-text="receiptData?.invoiceNo"
+                        ></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-600">Tanggal:</span>
+                        <span class="text-slate-900" x-text="receiptData?.date"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-600">Kasir:</span>
+                        <span class="text-slate-900">Demo Mode</span>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="mb-6 border-t-2 border-b-2 border-dashed border-slate-300 py-4">
+                    <template x-for="item in receiptData?.items" :key="item.id">
+                        <div class="mb-3 last:mb-0">
+                            <div class="mb-1 flex items-start justify-between">
+                                <span
+                                    class="flex-1 font-medium text-slate-900"
+                                    x-text="item.name"
+                                ></span>
+                            </div>
+                            <div class="flex justify-between text-sm text-slate-600">
+                                <span>
+                                    <span x-text="item.qty"></span> x
+                                    <span x-text="formatIDR(item.price)"></span>
+                                </span>
+                                <span
+                                    class="font-semibold text-slate-900"
+                                    x-text="formatIDR(item.qty * item.price)"
+                                ></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Summary -->
+                <div class="mb-6 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-600">Subtotal:</span>
+                        <span
+                            class="text-slate-900"
+                            x-text="formatIDR(receiptData?.subtotal)"
+                        ></span>
+                    </div>
+                    <div x-show="receiptData?.discount > 0" class="flex justify-between text-sm">
+                        <span class="text-slate-600">Diskon:</span>
+                        <span
+                            class="text-red-600"
+                            x-text="'-' + formatIDR(receiptData?.discount)"
+                        ></span>
+                    </div>
+                    <div x-show="receiptData?.tax > 0" class="flex justify-between text-sm">
+                        <span class="text-slate-600">Pajak:</span>
+                        <span class="text-slate-900" x-text="formatIDR(receiptData?.tax)"></span>
+                    </div>
+                    <div class="flex justify-between border-t-2 border-slate-300 pt-3">
+                        <span class="text-lg font-bold text-slate-900">TOTAL:</span>
+                        <span
+                            class="text-lg font-bold text-sky-600"
+                            x-text="formatIDR(receiptData?.total)"
+                        ></span>
+                    </div>
+                </div>
+
+                <!-- Payment Info -->
+                <div class="mb-6 space-y-2 rounded-lg bg-slate-50 p-4">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-600">Metode Pembayaran:</span>
+                        <span
+                            class="font-semibold text-slate-900 uppercase"
+                            x-text="receiptData?.paymentMethod"
+                        ></span>
+                    </div>
+                    <div x-show="receiptData?.paymentMethod === 'cash'">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">Tunai:</span>
+                            <span
+                                class="text-slate-900"
+                                x-text="formatIDR(receiptData?.paid)"
+                            ></span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">Kembalian:</span>
+                            <span
+                                class="font-bold text-emerald-600"
+                                x-text="formatIDR(receiptData?.change)"
+                            ></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Code -->
+                <div class="mb-6 flex justify-center">
+                    <div class="rounded-lg border-2 border-slate-200 bg-white p-3">
+                        <div
+                            class="flex h-32 w-32 items-center justify-center rounded bg-slate-100"
+                            x-html="generateQR(receiptData?.invoiceNo)"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="space-y-2 border-t border-slate-200 pt-4 text-center">
+                    <p class="text-sm font-semibold text-slate-900">Terima kasih atas kunjungan Anda!</p>
+                    <p class="text-xs text-slate-500">Barang yang sudah dibeli tidak dapat ditukar/dikembalikan</p>
+                    <p class="mt-3 text-xs text-slate-400">Demo Mode - Transaksi tidak tersimpan</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div
+                class="no-print flex gap-3 rounded-b-2xl border-t border-slate-200 bg-slate-50 p-4"
+            >
+                <button
+                    @click="printReceipt()"
+                    class="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-300 bg-white py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                    <i class="fas fa-print"></i>
+                    <span>Print</span>
+                </button>
+                <button
+                    @click="closeReceipt()"
+                    class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-sky-500 py-3 font-bold text-white transition hover:bg-sky-600"
+                >
+                    <i class="fas fa-check"></i>
+                    <span>Selesai</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        function posCashier(categoryMap) {
+            return {
+                products: @json ($products),
+                categories: @json ($categories),
+                query: '',
+                activeCategory: '__all__',
+                cart: [],
+                globalDiscount: 0,
+                tax: 0,
+                paymentMethod: 'cash',
+                cashTendered: 0,
+                loading: false,
+                showReceipt: false,
+                receiptData: null,
+                currentInvoiceNo: '',
+
+                init() {
+                    window.addEventListener('keydown', this.handleKey.bind(this));
+                    this.generateInvoiceNo();
+                },
+                generateInvoiceNo() {
+                    this.currentInvoiceNo = 'INV-DEMO-' + Date.now().toString().slice(-8);
+                },
+                handleKey(e) {
+                    if (e.key === 'F2') {
+                        e.preventDefault();
+                        this.$refs.searchInput?.focus();
+                    }
+                    if (e.key === 'Escape') {
+                        this.query = '';
+                    }
+                },
+
+                filteredProducts() {
+                    const q = this.query.trim().toLowerCase();
+                    return this.products.filter(p => {
+                        const matchCat =
+                            this.activeCategory === '__all__' ||
+                            String(p.category_id) === String(this.activeCategory);
+                        if (!matchCat) return false;
+                        if (!q) return true;
+                        return (
+                            (p.name || '').toLowerCase().includes(q) ||
+                            (p.sku || '').toLowerCase().includes(q) ||
+                            (p.barcode || '').toLowerCase().includes(q)
+                        );
+                    });
+                },
+
+                addToCart(p) {
+                    if (p.stock <= 0) return;
+                    const existing = this.cart.find(c => c.id === p.id);
+                    if (existing) {
+                        if (existing.qty + 1 > p.stock) {
+                            this.toast('Stok tidak cukup', 'error');
+                            return;
+                        }
+                        existing.qty += 1;
+                    } else {
+                        this.cart.push({
+                            id: p.id,
+                            name: p.name,
+                            sku: p.sku,
+                            barcode: p.barcode,
+                            price: parseFloat(p.price),
+                            qty: 1,
+                            unit: p.unit,
+                            stock: parseInt(p.stock || 0),
+                        });
+                    }
+                },
+                incrementQty(idx) {
+                    const c = this.cart[idx];
+                    if (c.qty + 1 > c.stock) {
+                        this.toast('Stok tidak cukup', 'error');
+                        return;
+                    }
+                    c.qty += 1;
+                },
+                decrementQty(idx) {
+                    const c = this.cart[idx];
+                    c.qty -= 1;
+                    if (c.qty <= 0) this.cart.splice(idx, 1);
+                },
+                clampQty(idx) {
+                    const c = this.cart[idx];
+                    if (!c.qty || c.qty <= 0) c.qty = 1;
+                    if (c.qty > c.stock) c.qty = c.stock;
+                },
+                removeFromCart(idx) {
+                    this.cart.splice(idx, 1);
+                },
+                clearCart() {
+                    this.cart = [];
+                    this.cashTendered = 0;
+                    this.query = '';
+                    this.globalDiscount = 0;
+                    this.tax = 0;
+                },
+
+                subtotal() {
+                    return this.cart.reduce((a, c) => a + c.qty * c.price, 0);
+                },
+                total() {
+                    return Math.max(0, this.subtotal() - (this.globalDiscount || 0) + (this.tax || 0));
+                },
+
+                formatIDR(n) {
+                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(n || 0));
+                },
+
+                checkoutDemo() {
+                    if (!this.cart.length) return;
+                    if ((this.cashTendered || 0) < this.total() && this.paymentMethod === 'cash') {
+                        this.toast('Tunai kurang dari total', 'error');
+                        return;
+                    }
+                    this.loading = true;
+
+                    // Generate receipt data using current invoice number
+                    this.receiptData = {
+                        invoiceNo: this.currentInvoiceNo,
+                        date: new Date().toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        }),
+                        items: [...this.cart],
+                        subtotal: this.subtotal(),
+                        discount: this.globalDiscount,
+                        tax: this.tax,
+                        total: this.total(),
+                        paid: this.paymentMethod === 'cash' ? this.cashTendered : this.total(),
+                        change:
+                            this.paymentMethod === 'cash'
+                                ? Math.max(0, this.cashTendered - this.total())
+                                : 0,
+                        paymentMethod: this.paymentMethod,
+                    };
+
+                    setTimeout(() => {
+                        this.loading = false;
+                        this.toast('✓ Transaksi berhasil!', 'success');
+                        // Clear cart immediately and show receipt
+                        this.cart = [];
+                        this.cashTendered = 0;
+                        this.globalDiscount = 0;
+                        this.tax = 0;
+                        this.showReceipt = true;
+                        // Generate new invoice number for next transaction
+                        this.generateInvoiceNo();
+                    }, 600);
+                },
+                closeReceipt() {
+                    this.showReceipt = false;
+                    this.receiptData = null;
+                },
+                printReceipt() {
+                    window.print();
+                },
+                generateQR(text) {
+                    if (!text) return '';
+                    const size = 128;
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`;
+                    return `<img src="${qrUrl}" alt="QR Code" class="w-full h-full" />`;
+                },
+                toast(message, type = 'info') {
+                    const colors = {
+                        info: 'bg-blue-500',
+                        success: 'bg-emerald-500',
+                        error: 'bg-red-500',
+                    };
+                    const el = document.createElement('div');
+                    el.className = `fixed top-4 right-4 ${colors[type]} text-white px-4 py-3 rounded-lg shadow-xl text-sm font-medium z-50 animate-slide-up`;
+                    el.textContent = message;
+                    document.body.appendChild(el);
+                    setTimeout(() => el.remove(), 2500);
+                },
+            };
+        }
+    </script>
+</body>
+</html>
