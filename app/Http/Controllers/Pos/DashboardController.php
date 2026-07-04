@@ -123,7 +123,7 @@ class DashboardController extends Controller
 
         // ── Active shifts & cashiers ──────────────────────────────────────────
         $openShift      = auth()->user()->currentShift();
-        $activeShifts   = PosShift::with('cashier')->where('status', 'open')->get();
+        $activeShifts   = PosShift::with('user')->where('status', 'open')->get();
         $activeCashiers = $activeShifts->count();
 
         // ── Shift summary for current user ────────────────────────────────────
