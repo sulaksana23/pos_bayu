@@ -86,7 +86,7 @@ class DashboardController extends Controller
             ->limit(8)->get();
 
         // ── Recent transactions ───────────────────────────────────────────────
-        $recent = PosTransaction::with(['cashier', 'customer', 'items'])
+        $recent = PosTransaction::with(['user', 'customer', 'items'])
             ->completed()->latest('created_at')->limit(10)->get();
 
         // ── Stock info ────────────────────────────────────────────────────────
