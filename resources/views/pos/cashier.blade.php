@@ -7,6 +7,39 @@
         x-init="init()"
         class="flex h-full flex-col"
     >
+        {{-- MOBILE TOP TAB BAR --}}
+        <div class="no-print shrink-0 border-b border-gray-200 bg-white lg:hidden">
+            <div class="flex">
+                <button
+                    @click="mobileTab = 'products'"
+                    :class="mobileTab === 'products'
+                        ? 'text-blue-600 border-b-2 border-blue-500'
+                        : 'text-gray-500 border-b-2 border-transparent'"
+                    class="flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors"
+                >
+                    <i class="fas fa-th-large"></i>
+                    <span>Produk</span>
+                </button>
+                <button
+                    @click="mobileTab = 'cart'"
+                    :class="mobileTab === 'cart'
+                        ? 'text-blue-600 border-b-2 border-blue-500'
+                        : 'text-gray-500 border-b-2 border-transparent'"
+                    class="relative flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors"
+                >
+                    <span class="relative inline-block">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span
+                            x-show="cart.length > 0"
+                            x-text="cart.length"
+                            class="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-bold text-white"
+                        ></span>
+                    </span>
+                    <span>Keranjang</span>
+                </button>
+            </div>
+        </div>
+
         {{-- MAIN CONTENT AREA --}}
         <div class="relative min-h-0 flex-1 lg:grid lg:grid-cols-5 lg:gap-4 lg:p-4">
 
@@ -357,39 +390,6 @@
                         >
                     </button>
                 </div>
-            </div>
-        </div>
-
-        {{-- MOBILE BOTTOM TAB BAR --}}
-        <div class="no-print shrink-0 border-t border-gray-200 bg-white lg:hidden">
-            <div class="flex">
-                <button
-                    @click="mobileTab = 'products'"
-                    :class="mobileTab === 'products'
-                        ? 'text-blue-600 border-t-2 border-blue-500'
-                        : 'text-gray-500 border-t-2 border-transparent'"
-                    class="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs font-semibold transition-colors"
-                >
-                    <i class="fas fa-th-large text-lg"></i>
-                    <span>Produk</span>
-                </button>
-                <button
-                    @click="mobileTab = 'cart'"
-                    :class="mobileTab === 'cart'
-                        ? 'text-blue-600 border-t-2 border-blue-500'
-                        : 'text-gray-500 border-t-2 border-transparent'"
-                    class="relative flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs font-semibold transition-colors"
-                >
-                    <span class="relative inline-block">
-                        <i class="fas fa-shopping-cart text-lg"></i>
-                        <span
-                            x-show="cart.length > 0"
-                            x-text="cart.length"
-                            class="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-bold text-white"
-                        ></span>
-                    </span>
-                    <span>Keranjang</span>
-                </button>
             </div>
         </div>
     </div>
