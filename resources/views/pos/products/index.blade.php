@@ -50,7 +50,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-[10px] text-gray-400">Total</p>
-                    <p class="text-lg font-bold text-gray-900">{{ $products->total() }}</p>
+                    <p class="text-lg font-bold text-gray-900">{{ $statsTotal }}</p>
                 </div>
             </div>
         </div>
@@ -61,7 +61,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-[10px] text-gray-400">Aktif</p>
-                    <p class="text-lg font-bold text-gray-900">{{ $products->getCollection()->where('is_active', true)->count() }}</p>
+                    <p class="text-lg font-bold text-gray-900">{{ $statsActive }}</p>
                 </div>
             </div>
         </div>
@@ -72,7 +72,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-[10px] text-gray-400">Stok Rendah</p>
-                    <p class="text-lg font-bold text-gray-900">{{ $products->getCollection()->filter(fn($p) => $p->stock > 0 && $p->stock <= $p->min_stock)->count() }}</p>
+                    <p class="text-lg font-bold text-gray-900">{{ $statsLow }}</p>
                 </div>
             </div>
         </div>
@@ -83,7 +83,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-[10px] text-gray-400">Stok Habis</p>
-                    <p class="text-lg font-bold text-gray-900">{{ $products->getCollection()->where('stock', '<=', 0)->count() }}</p>
+                    <p class="text-lg font-bold text-gray-900">{{ $statsOut }}</p>
                 </div>
             </div>
         </div>

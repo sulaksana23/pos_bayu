@@ -52,10 +52,19 @@ class ProductController extends Controller
             $query->where('is_active', $request->is_active);
         }
 
-        $products = $query->latest()->paginate(20);
+        $products = $query->latest()->paginate(20)->withQueryString();
         $categories = Category::active()->orderBy('name')->get();
 
-        return view('pos.products.index', compact('products', 'categories'));
+        // Server-side stats — always from full dataset (no filters)
+        $statsTotal    = Product::count();
+        $statsActive   = Product::where('is_active', true)->count();
+        $statsLow      = Product::where('stock', '>', 0)->whereRaw('stock <= min_stock')->count();
+        $statsOut      = Product::where('stock', '<=', 0)->count();
+
+        return view('pos.products.index', compact(
+            'products', 'categories',
+            'statsTotal', 'statsActive', 'statsLow', 'statsOut'
+        ));
     }
 
     public function create()
