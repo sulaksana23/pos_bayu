@@ -51,8 +51,10 @@ Route::middleware('auth')->name('pos.')->group(function () {
     Route::middleware('subscription')->group(function () {
         // Shifts
         Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
-        Route::post('/shifts/open', [ShiftController::class, 'open'])->name('shifts.open');
+        Route::get('/shifts/open', [ShiftController::class, 'showOpen'])->name('shifts.open');
+        Route::post('/shifts/open', [ShiftController::class, 'open'])->name('shifts.open.store');
         Route::post('/shifts/close', [ShiftController::class, 'close'])->name('shifts.close');
+        Route::get('/shifts/{shift}', [ShiftController::class, 'show'])->name('shifts.show');
 
         // Cashier
         Route::get('/cashier', [CashierController::class, 'index'])->name('cashier.index');
