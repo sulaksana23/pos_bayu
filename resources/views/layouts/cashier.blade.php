@@ -18,11 +18,9 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
                     colors: {
-                        'olsera-blue': '#0066FF',
-                        'olsera-blue-dark': '#0052CC',
-                        'olsera-blue-light': '#E6F0FF',
-                        'olsera-red': '#FF3366',
-                        'olsera-pink': '#FF6B9D',
+                        'pos-orange': '#f97316',
+                        'pos-orange-dark': '#ea580c',
+                        'pos-orange-light': '#fff7ed',
                     }
                 }
             }
@@ -73,7 +71,7 @@
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">
                         <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md"
+                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-rose-500 shadow-md"
                         >
                             <i class="fas fa-cash-register text-lg text-white"></i>
                         </div>
@@ -101,9 +99,9 @@
 
                 {{-- Center: Quick Stats --}}
                 <div class="hidden items-center gap-4 lg:flex">
-                    <div class="rounded-lg bg-blue-50 px-4 py-2 text-center">
+                    <div class="rounded-lg bg-orange-50 px-4 py-2 text-center">
                         <p class="text-xs text-gray-600">Transaksi Hari Ini</p>
-                        <p class="text-lg font-bold text-blue-600" id="todayTransactions">0</p>
+                        <p class="text-lg font-bold text-orange-600" id="todayTransactions">0</p>
                     </div>
                     <div class="rounded-lg bg-emerald-50 px-4 py-2 text-center">
                         <p class="text-xs text-gray-600">Total Penjualan</p>
@@ -135,7 +133,7 @@
                             class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                         >
                             <div
-                                class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white"
+                                class="flex h-7 w-7 items-center justify-center rounded-full bg-orange-500 text-xs font-bold text-white"
                             >
                                 {{ substr(auth()->user()->name, 0, 1) }}
                             </div>
