@@ -5,11 +5,37 @@
     <div
         x-data="posCashier(@js($categories->pluck('name','id')->toArray() + ['__all__' => 'Semua']))"
         x-init="init()"
-        class="grid h-full grid-cols-1 gap-4 p-4 lg:grid-cols-5"
+        class="flex h-full flex-col lg:grid lg:grid-cols-5 lg:gap-4 lg:p-4"
     >
+        {{-- MOBILE TAB BAR --}}
+        <div class="no-print flex shrink-0 border-b border-gray-200 bg-white lg:hidden">
+            <button
+                @click="mobileTab = 'products'"
+                :class="mobileTab === 'products' ? 'border-b-2 border-blue-500 text-blue-600 font-bold' : 'text-gray-500'"
+                class="flex flex-1 items-center justify-center gap-2 py-3 text-sm transition-colors"
+            >
+                <i class="fas fa-th-large"></i>
+                <span>Produk</span>
+            </button>
+            <button
+                @click="mobileTab = 'cart'"
+                :class="mobileTab === 'cart' ? 'border-b-2 border-blue-500 text-blue-600 font-bold' : 'text-gray-500'"
+                class="relative flex flex-1 items-center justify-center gap-2 py-3 text-sm transition-colors"
+            >
+                <i class="fas fa-shopping-cart"></i>
+                <span>Keranjang</span>
+                <span
+                    x-show="cart.length > 0"
+                    x-text="cart.length"
+                    class="absolute top-1.5 right-6 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white"
+                ></span>
+            </button>
+        </div>
+
         {{-- LEFT: Products --}}
         <div
-            class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3"
+            :class="mobileTab === 'products' ? 'flex' : 'hidden lg:flex'"
+            class="min-h-0 flex-1 flex-col overflow-hidden bg-white lg:rounded-xl lg:border lg:border-gray-200 lg:shadow-sm lg:col-span-3"
         >
             <div class="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100 p-4">
                 <div class="relative">
@@ -109,9 +135,12 @@
         </div>
 
         {{-- RIGHT: Cart + Payment --}}
-        <div class="flex min-h-0 flex-col gap-3 lg:col-span-2">
+        <div
+            :class="mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'"
+            class="min-h-0 flex-1 flex-col gap-3 lg:col-span-2"
+        >
             <div
-                class="flex min-h-0 flex-1 flex-col rounded-xl border border-gray-200 bg-white shadow-sm"
+                class="flex min-h-0 flex-1 flex-col bg-white lg:rounded-xl lg:border lg:border-gray-200 lg:shadow-sm"
             >
                 <div
                     class="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white p-4"
@@ -152,7 +181,7 @@
                                 </div>
                                 <button
                                     @click="removeFromCart(idx)"
-                                    class="text-gray-300 opacity-0 transition group-hover:opacity-100 hover:text-red-500"
+                                    class="text-gray-400 transition hover:text-red-500 lg:opacity-0 lg:group-hover:opacity-100"
                                     title="Hapus"
                                 >
                                     <i class="fas fa-times text-sm"></i>
@@ -366,6 +395,7 @@
                     paymentMethod: 'cash',
                     cashTendered: 0,
                     loading: false,
+                    mobileTab: 'products',
 
                     init() {
                         window.addEventListener('keydown', this.handleKey.bind(this));
@@ -440,6 +470,10 @@
                                 unit: p.unit,
                                 stock: parseInt(p.stock || 0),
                             });
+                        }
+                        // Auto-switch to cart tab on mobile after adding item
+                        if (window.innerWidth < 1024) {
+                            this.mobileTab = 'cart';
                         }
                     },
                     incrementQty(idx) {
