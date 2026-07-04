@@ -113,7 +113,7 @@
             class="flex flex-col gap-3 lg:col-span-2"
         >
             <div
-                class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+                class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:flex-1"
             >
                 <div
                     class="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white p-4"
@@ -138,7 +138,7 @@
                         Reset
                     </button>
                 </div>
-                <div class="scroll-thin flex-1 overflow-y-auto p-3">
+                <div class="p-3 lg:scroll-thin lg:flex-1 lg:overflow-y-auto">
                     <template x-for="(item, idx) in cart" :key="item.id + '_' + idx">
                         <div
                             class="group mb-2 rounded-lg border border-transparent px-3 py-2.5 transition-all hover:border-blue-200 hover:bg-blue-50/50"
