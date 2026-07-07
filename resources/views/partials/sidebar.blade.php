@@ -1,201 +1,254 @@
+{{--
+    sidebar.blade.php
+    ─────────────────────────────────────────────────────────────────────────────
+    3 States (controlled via Alpine.store('sidebar')):
+      1. Expanded  (~260px)   — desktop default, lg+
+      2. Collapsed (~72px)    — icon-only, tooltip on hover, toggle via button
+      3. Mobile drawer        — off-canvas overlay, toggle via hamburger in navbar
+
+    Key Alpine directives used:
+      :class      — dynamic width / translate classes
+      x-show      — show/hide labels & section headings
+      x-transition — smooth enter/leave for mobile drawer backdrop
+      x-tooltip   — hover tooltip in collapsed state (via title attr + CSS)
+      @click.outside — close drawer when clicking backdrop
+      $store.sidebar — global state shared with navbar hamburger
+--}}
 @php
-    $isAdmin = auth()->user()?->isAdmin();
-    $isManager = auth()->user()?->isManager();
-    $canManage = auth()->user()?->canManageInventory();
+    $isAdmin    = auth()->user()?->isAdmin();
+    $isManager  = auth()->user()?->isManager();
+    $canManage  = auth()->user()?->canManageInventory();
 @endphp
+
+{{-- ── Mobile backdrop overlay ─────────────────────────────────────────── --}}
 <div
-    id="sidebarBackdrop"
-    class="fixed inset-0 z-10 hidden bg-black/40 lg:hidden"
-    onclick="window.toggleSidebar()"
+    x-show="$store.sidebar.open"
+    x-transition:enter="transition-opacity duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition-opacity duration-200"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    @click="$store.sidebar.close()"
+    class="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm lg:hidden"
+    x-cloak
+    aria-hidden="true"
 ></div>
+
+{{-- ── Sidebar panel ────────────────────────────────────────────────────── --}}
 <aside
-    id="posSidebar"
-    class="scroll-thin fixed top-16 bottom-0 left-0 z-20 w-64 -translate-x-full transform overflow-y-auto border-r border-gray-200 bg-white transition-transform duration-200 lg:translate-x-0"
+    id="appSidebar"
+    {{--
+        Width transitions:
+          Mobile  : translate-x-full (hidden) → translate-x-0 (open)
+          Desktop : w-[260px] (expanded) ↔ w-[72px] (collapsed)
+        We combine both via :class bindings.
+    --}}
+    :class="{
+        '-translate-x-full': !$store.sidebar.open,
+        'translate-x-0':      $store.sidebar.open,
+        'w-[260px]':          !$store.sidebar.collapsed,
+        'w-[72px]':            $store.sidebar.collapsed,
+    }"
+    class="scroll-thin fixed top-0 bottom-0 left-0 z-30
+           flex flex-col overflow-y-auto overflow-x-hidden
+           border-r border-white/10
+           bg-[#0f172a]
+           transition-all duration-200 ease-in-out
+           lg:translate-x-0"
+    aria-label="Sidebar navigasi"
 >
-    <nav class="space-y-0.5 p-4">
 
-        {{-- Operasional --}}
-        <p class="mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Operasional</p>
-        <a href="{{ route('pos.dashboard') }}"
-            class="sidebar-link {{ request()->routeIs('pos.dashboard') ? 'active' : '' }}">
-            <i class="fas fa-chart-line w-5 text-center"></i>
-            <span>Dashboard</span>
-        </a>
-        <a href="{{ route('pos.cashier.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.cashier.*') ? 'active' : '' }}">
-            <i class="fas fa-cash-register w-5 text-center"></i>
-            <span>Kasir</span>
-        </a>
-        <a href="{{ route('pos.shifts.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.shifts.*') ? 'active' : '' }}">
-            <i class="fas fa-business-time w-5 text-center"></i>
-            <span>Shift</span>
-        </a>
+    {{-- ── Header: logo + collapse toggle ─────────────────────────────── --}}
+    <div class="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4">
 
-        {{-- Katalog --}}
-        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Katalog</p>
-        <a href="{{ route('pos.products.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.products.*') ? 'active' : '' }}">
-            <i class="fas fa-box w-5 text-center"></i>
-            <span>Produk</span>
-        </a>
-        <a href="{{ route('pos.categories.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.categories.*') ? 'active' : '' }}">
-            <i class="fas fa-tag w-5 text-center"></i>
-            <span>Kategori</span>
-        </a>
-        <a href="{{ route('pos.inventory.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.inventory.*') ? 'active' : '' }}">
-            <i class="fas fa-boxes-stacked w-5 text-center"></i>
-            <span>Stok & Gudang</span>
-        </a>
-        <a href="{{ route('pos.customers.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.customers.*') ? 'active' : '' }}">
-            <i class="fas fa-users w-5 text-center"></i>
-            <span>Pelanggan</span>
+        {{-- Logo / App name — hidden when collapsed --}}
+        <a
+            href="{{ route('pos.dashboard') }}"
+            class="flex min-w-0 items-center gap-2.5"
+            :class="{ 'opacity-0 pointer-events-none w-0 overflow-hidden': $store.sidebar.collapsed }"
+            style="transition: opacity 150ms, width 200ms"
+        >
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30">
+                <i class="fas fa-cash-register text-xs text-white"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="truncate text-sm font-bold text-white">{{ config('app.name', 'BaliPOS') }}</p>
+                <p class="text-[10px] text-slate-400">
+                    <span class="font-semibold text-orange-400">v{{ config('app.version', '1.0.0') }}</span>
+                </p>
+            </div>
         </a>
 
-        {{-- Laporan & Keuangan --}}
-        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Keuangan</p>
-        <a href="{{ route('pos.accounting.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.accounting.index') ? 'active' : '' }}">
-            <i class="fas fa-calculator w-5 text-center"></i>
-            <span>Akunting</span>
-        </a>
-        <a href="{{ route('pos.accounting.cash-drawer') }}"
-            class="sidebar-link {{ request()->routeIs('pos.accounting.cash-drawer') ? 'active' : '' }}">
-            <i class="fas fa-cash-register w-5 text-center"></i>
-            <span>Laci Kas</span>
+        {{-- Icon-only logo when collapsed --}}
+        <a
+            href="{{ route('pos.dashboard') }}"
+            :class="{ 'flex': $store.sidebar.collapsed, 'hidden': !$store.sidebar.collapsed }"
+            class="mx-auto items-center justify-center"
+        >
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30">
+                <i class="fas fa-cash-register text-xs text-white"></i>
+            </div>
         </a>
 
-        {{-- Laporan --}}
-        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Laporan</p>
-        <a href="{{ route('pos.reports.sales') }}"
-            class="sidebar-link {{ request()->routeIs('pos.reports.sales') ? 'active' : '' }}">
-            <i class="fas fa-chart-bar w-5 text-center"></i>
-            <span>Lap. Penjualan</span>
-        </a>
-        <a href="{{ route('pos.reports.products') }}"
-            class="sidebar-link {{ request()->routeIs('pos.reports.products') ? 'active' : '' }}">
-            <i class="fas fa-chart-pie w-5 text-center"></i>
-            <span>Lap. Produk</span>
-        </a>
-        <a href="{{ route('pos.reports.customers') }}"
-            class="sidebar-link {{ request()->routeIs('pos.reports.customers') ? 'active' : '' }}">
-            <i class="fas fa-user-chart w-5 text-center"></i>
-            <span>Lap. Pelanggan</span>
-        </a>
-        <a href="{{ route('pos.reports.inventory') }}"
-            class="sidebar-link {{ request()->routeIs('pos.reports.inventory') ? 'active' : '' }}">
-            <i class="fas fa-warehouse w-5 text-center"></i>
-            <span>Lap. Inventaris</span>
-        </a>
+        {{-- Desktop collapse toggle (hidden on mobile) --}}
+        <button
+            @click="$store.sidebar.toggleCollapse()"
+            :title="$store.sidebar.collapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'"
+            class="hidden lg:flex items-center justify-center h-7 w-7 shrink-0 rounded-md text-slate-400
+                   hover:bg-white/10 hover:text-white transition-colors duration-150"
+            aria-label="Toggle sidebar"
+        >
+            {{-- Arrow icon flips based on state --}}
+            <svg
+                :class="{ 'rotate-180': $store.sidebar.collapsed }"
+                class="h-4 w-4 transition-transform duration-200"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+    </div>
 
-        {{-- Admin --}}
-        @if ($isAdmin)
-        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Admin</p>
-        <a href="{{ route('pos.users.index') }}"
-            class="sidebar-link {{ request()->routeIs('pos.users.*') ? 'active' : '' }}">
-            <i class="fas fa-user-cog w-5 text-center"></i>
-            <span>Pengguna</span>
-        </a>
+    {{-- ── Navigation menu ──────────────────────────────────────────────── --}}
+    <nav class="flex-1 space-y-0.5 px-3 py-4" aria-label="Menu utama">
+
+        {{-- ╔══════════════════════════════╗ --}}
+        {{-- ║  SEKSI: OPERASIONAL          ║ --}}
+        {{-- ╚══════════════════════════════╝ --}}
+
+        {{-- Section label — hidden when collapsed, replaced by thin divider --}}
+        <p
+            x-show="!$store.sidebar.collapsed"
+            x-transition:enter="transition-opacity duration-150"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity duration-100"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="mb-1.5 px-2 pt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500"
+        >Operasional</p>
+        <div x-show="$store.sidebar.collapsed" class="mb-2 border-t border-white/10"></div>
+
+        @php
+            $operasional = [
+                ['route' => 'pos.dashboard',      'match' => 'pos.dashboard',   'icon' => 'fas fa-chart-line',    'label' => 'Dashboard'],
+                ['route' => 'pos.cashier.index',  'match' => 'pos.cashier.*',   'icon' => 'fas fa-cash-register', 'label' => 'Kasir'],
+                ['route' => 'pos.shifts.index',   'match' => 'pos.shifts.*',    'icon' => 'fas fa-business-time', 'label' => 'Shift'],
+            ];
+        @endphp
+        @foreach ($operasional as $item)
+            @include('partials.sidebar-link', $item)
+        @endforeach
+
+        {{-- ╔══════════════════════════════╗ --}}
+        {{-- ║  SEKSI: KATALOG              ║ --}}
+        {{-- ╚══════════════════════════════╝ --}}
+        <p
+            x-show="!$store.sidebar.collapsed"
+            x-transition:enter="transition-opacity duration-150"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            class="mb-1.5 px-2 pt-5 text-[10px] font-bold uppercase tracking-widest text-slate-500"
+        >Katalog</p>
+        <div x-show="$store.sidebar.collapsed" class="my-2 border-t border-white/10"></div>
+
+        @php
+            $katalog = [
+                ['route' => 'pos.products.index',   'match' => 'pos.products.*',   'icon' => 'fas fa-box',           'label' => 'Produk'],
+                ['route' => 'pos.categories.index', 'match' => 'pos.categories.*', 'icon' => 'fas fa-tag',           'label' => 'Kategori'],
+                ['route' => 'pos.inventory.index',  'match' => 'pos.inventory.*',  'icon' => 'fas fa-boxes-stacked', 'label' => 'Stok & Gudang'],
+                ['route' => 'pos.customers.index',  'match' => 'pos.customers.*',  'icon' => 'fas fa-users',         'label' => 'Pelanggan'],
+            ];
+        @endphp
+        @foreach ($katalog as $item)
+            @include('partials.sidebar-link', $item)
+        @endforeach
+
+        {{-- ╔══════════════════════════════╗ --}}
+        {{-- ║  SEKSI: TRANSAKSI            ║ --}}
+        {{-- ╚══════════════════════════════╝ --}}
+        <p
+            x-show="!$store.sidebar.collapsed"
+            x-transition:enter="transition-opacity duration-150"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            class="mb-1.5 px-2 pt-5 text-[10px] font-bold uppercase tracking-widest text-slate-500"
+        >Transaksi</p>
+        <div x-show="$store.sidebar.collapsed" class="my-2 border-t border-white/10"></div>
+
+        @php
+            $transaksi = [
+                ['route' => 'pos.accounting.index',      'match' => 'pos.accounting.*',      'icon' => 'fas fa-receipt',     'label' => 'Akuntansi'],
+                ['route' => 'pos.accounting.cash-drawer','match' => 'pos.accounting.*',      'icon' => 'fas fa-cash-register','label' => 'Kas'],
+                ['route' => 'pos.reports.sales',         'match' => 'pos.reports.*',         'icon' => 'fas fa-chart-bar',   'label' => 'Laporan'],
+            ];
+        @endphp
+        @foreach ($transaksi as $item)
+            @include('partials.sidebar-link', $item)
+        @endforeach
+
+        {{-- ╔══════════════════════════════╗ --}}
+        {{-- ║  SEKSI: PENGATURAN (admin)   ║ --}}
+        {{-- ╚══════════════════════════════╝ --}}
+        @if ($isAdmin || $isManager)
+            <p
+                x-show="!$store.sidebar.collapsed"
+                x-transition:enter="transition-opacity duration-150"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                class="mb-1.5 px-2 pt-5 text-[10px] font-bold uppercase tracking-widest text-slate-500"
+            >Pengaturan</p>
+            <div x-show="$store.sidebar.collapsed" class="my-2 border-t border-white/10"></div>
+
+            @php
+                $pengaturan = [
+                    ['route' => 'pos.users.index', 'match' => 'pos.users.*', 'icon' => 'fas fa-user-shield', 'label' => 'Pengguna'],
+                ];
+            @endphp
+            @foreach ($pengaturan as $item)
+                @include('partials.sidebar-link', $item)
+            @endforeach
         @endif
 
-        {{-- Akun --}}
-        <p class="mt-5 mb-2 px-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Akun</p>
-        <button
-            type="button"
-            onclick="document.getElementById('logout-form').submit()"
-            class="sidebar-link w-full text-red-600 hover:!bg-red-50 hover:!text-red-700"
-        >
-            <i class="fas fa-sign-out-alt w-5 text-center text-red-500"></i>
-            <span>Logout</span>
-        </button>
     </nav>
 
-    @isset ($currentShift)
-        @if ($currentShift)
-            <div class="m-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-3 text-white shadow-lg shadow-emerald-500/30">
-                <p class="text-[10px] tracking-wider uppercase opacity-80">Shift Aktif</p>
-                <p class="mt-0.5 text-lg font-bold">{{ $currentShift->opened_at->format('H:i') }} WITA</p>
-                <p class="mt-1 text-xs opacity-80">{{ $currentShift->user->name }}</p>
-                <a href="{{ route('pos.shifts.index') }}"
-                    class="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/15 px-2 py-1.5 text-[11px] font-semibold backdrop-blur transition hover:bg-white/25">
-                    Tutup shift <i class="fas fa-arrow-right text-[10px]"></i>
-                </a>
+    {{-- ── Footer: shift status + user mini ─────────────────────────────── --}}
+    <div class="shrink-0 border-t border-white/10 p-3">
+        @auth
+            <div
+                class="flex items-center gap-3 rounded-lg px-2 py-2"
+                :class="{ 'justify-center': $store.sidebar.collapsed }"
+            >
+                {{-- Avatar --}}
+                <div class="relative shrink-0">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-600 text-xs font-bold text-white shadow">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                    </div>
+                    <span class="absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0f172a] bg-emerald-400"></span>
+                </div>
+
+                {{-- Name + role — hidden when collapsed --}}
+                <div
+                    x-show="!$store.sidebar.collapsed"
+                    x-transition:enter="transition-opacity duration-150"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    class="min-w-0"
+                >
+                    <p class="truncate text-sm font-semibold text-white">{{ auth()->user()->name }}</p>
+                    <p class="truncate text-[11px] capitalize text-slate-400">{{ auth()->user()->role ?? 'staff' }}</p>
+                </div>
             </div>
-        @endif
-    @endisset
+        @endauth
+    </div>
+
 </aside>
 
-<style>
-    .sidebar-link {
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-        padding: 0.5rem 0.875rem;
-        font-size: 0.8125rem;
-        font-weight: 500;
-        color: #4b5563;
-        border-radius: 0.625rem;
-        transition: all 0.15s ease;
-        text-decoration: none;
-    }
-    .sidebar-link:hover:not(.active):not(.text-blue-600):not(.text-red-600) {
-        background: #f3f4f6;
-        color: #111827;
-    }
-    .sidebar-link:hover:not(.active) i {
-        color: #6b7280;
-    }
-    .sidebar-link.active {
-        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        color: white !important;
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
-    }
-    .sidebar-link.active i {
-        color: white !important;
-    }
-    .sidebar-link i {
-        color: #9ca3af;
-        transition: color 0.15s ease;
-    }
-    @media (max-width: 1023.98px) {
-        #posSidebar.sidebar-open {
-            --tw-translate-x: 0px;
-        }
-    }
-</style>
-
-<script>
-    window.toggleSidebar = function () {
-        const sb = document.getElementById('posSidebar');
-        const bd = document.getElementById('sidebarBackdrop');
-        if (sb) {
-            const isOpen = sb.classList.toggle('sidebar-open');
-            if (bd) bd.classList.toggle('hidden', !isOpen);
-        }
-    };
-    document.addEventListener('click', e => {
-        if (window.innerWidth < 1024) {
-            const sb = document.getElementById('posSidebar');
-            const isClickInside = sb?.contains(e.target);
-            const isToggle =
-                e.target.closest('[onclick="window.toggleSidebar()"]') ||
-                e.target.closest('button[aria-label="Toggle menu"]');
-            if (sb?.classList.contains('sidebar-open') && !isClickInside && !isToggle) {
-                sb.classList.remove('sidebar-open');
-                const bd = document.getElementById('sidebarBackdrop');
-                if (bd) bd.classList.add('hidden');
-            }
-        }
-        const am = document.getElementById('accountMenu');
-        if (
-            am &&
-            !am.contains(e.target) &&
-            !e.target.closest('[onclick="window.toggleAccountMenu()"]')
-        ) {
-            am.classList.add('hidden');
-        }
-    });
-</script>
+{{--
+    ── Sidebar link sub-partial ──────────────────────────────────────────────
+    Extracted inline below via @include('partials.sidebar-link', [...])
+    Variables: $route, $match, $icon, $label
+    Active detection: request()->routeIs($match)
+    Active style: left border teal accent + soft teal tint bg (no solid block)
+--}}
