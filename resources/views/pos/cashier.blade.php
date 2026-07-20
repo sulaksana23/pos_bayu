@@ -251,8 +251,8 @@
 
                 {{-- Non-cash info --}}
                 <div x-show="paymentMethod !== 'cash'"
-                    class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
-                    <p class="text-[11px] text-blue-700">Konfirmasi pembayaran dari customer, lalu proses.</p>
+                    class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                    <p class="text-[11px] text-gray-500">Konfirmasi pembayaran dari customer, lalu proses.</p>
                 </div>
 
                 {{-- Checkout Button --}}
@@ -376,7 +376,7 @@
             },
 
             toast(message, type = 'info') {
-                const colors = { info: 'bg-blue-600', success: 'bg-emerald-600', warning: 'bg-amber-500', error: 'bg-red-600' };
+                const colors = { info: 'bg-gray-700', success: 'bg-emerald-600', warning: 'bg-amber-500', error: 'bg-red-600' };
                 const el = document.createElement('div');
                 el.className = `fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-xl ${colors[type]} transition-all`;
                 el.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>${message}`;

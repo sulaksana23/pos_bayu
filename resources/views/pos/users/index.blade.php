@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Manajemen Pengguna')
+@section('breadcrumb', 'Pengguna')
 
 @section('content')
 <div class="space-y-4" x-data="{
@@ -8,66 +9,54 @@
 }">
 
     {{-- Header --}}
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-lg font-bold text-gray-900">Manajemen Pengguna</h1>
-            <p class="text-xs text-gray-500">Kelola akun kasir, manajer, dan admin &middot; {{ $users->total() }} pengguna</p>
+            <h1 class="text-base font-bold text-gray-900">Manajemen Pengguna</h1>
+            <p class="text-xs text-gray-400">{{ $users->total() }} pengguna terdaftar</p>
         </div>
         <div class="flex items-center gap-2">
             {{-- Toggle View --}}
-            <div class="flex items-center rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+            <div class="flex items-center rounded-lg border border-gray-200 bg-white p-0.5 shadow-sm">
                 <button @click="setView('table')"
                     :class="view === 'table' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600'"
                     class="rounded-md px-2.5 py-1.5 text-xs font-medium transition-all">
-                    <i class="fas fa-table mr-1"></i> Tabel
+                    <i class="fas fa-table-list mr-1"></i> Tabel
                 </button>
                 <button @click="setView('grid')"
                     :class="view === 'grid' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600'"
                     class="rounded-md px-2.5 py-1.5 text-xs font-medium transition-all">
-                    <i class="fas fa-th-large mr-1"></i> Grid
+                    <i class="fas fa-grid-2 mr-1"></i> Grid
                 </button>
             </div>
             <a href="{{ route('pos.users.create') }}"
-                class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-2 text-xs font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl">
-                <i class="fas fa-plus"></i> Tambah
+                class="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-orange-600 transition-colors">
+                <i class="fas fa-plus"></i> Tambah User
             </a>
         </div>
     </div>
 
-    {{-- Alerts --}}
-    @if (session('success'))
-        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            <i class="fas fa-check-circle text-emerald-500"></i> {{ session('success') }}
-        </div>
-    @endif
-    @if (session('error'))
-        <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            <i class="fas fa-exclamation-circle text-red-500"></i> {{ session('error') }}
-        </div>
-    @endif
-
     {{-- Search & Filter --}}
     <form method="GET" action="{{ route('pos.users.index') }}"
-        class="flex flex-wrap items-center gap-2 rounded-2xl border border-gray-100 bg-white px-3 py-2.5 shadow-sm">
+        class="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 shadow-sm">
         <div class="relative min-w-0 flex-1">
-            <i class="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400"></i>
+            <i class="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
             <input name="q" value="{{ $q }}" placeholder="Cari nama, email, telepon..."
-                class="w-full rounded-lg border border-gray-200 py-1.5 pr-3 pl-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                class="w-full rounded-lg border border-gray-200 py-1.5 pr-3 pl-8 text-sm text-gray-900 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 transition" />
         </div>
-        <select name="role" class="rounded-lg border border-gray-200 py-1.5 px-3 text-sm text-gray-600 focus:border-blue-500 focus:outline-none">
+        <select name="role" class="rounded-lg border border-gray-200 bg-white py-1.5 px-3 text-sm text-gray-600 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 transition">
             <option value="">Semua Role</option>
-            <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+            <option value="admin"   {{ request('role') === 'admin'   ? 'selected' : '' }}>Admin</option>
             <option value="manager" {{ request('role') === 'manager' ? 'selected' : '' }}>Manajer</option>
             <option value="cashier" {{ request('role') === 'cashier' ? 'selected' : '' }}>Kasir</option>
         </select>
         <button type="submit"
-            class="rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-600 transition">
-            <i class="fas fa-search mr-1"></i> Cari
+            class="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-600 transition-colors">
+            <i class="fas fa-search"></i> Cari
         </button>
         @if ($q || request('role'))
             <a href="{{ route('pos.users.index') }}"
-                class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition">
-                <i class="fas fa-times mr-1"></i> Reset
+                class="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 transition-colors">
+                <i class="fas fa-times"></i> Reset
             </a>
         @endif
     </form>
@@ -76,86 +65,89 @@
         $roleColors = [
             'admin'   => 'bg-purple-100 text-purple-700',
             'manager' => 'bg-blue-100 text-blue-700',
-            'cashier' => 'bg-gray-100 text-gray-700',
+            'cashier' => 'bg-gray-100 text-gray-600',
         ];
         $roleLabels = ['admin' => 'Admin', 'manager' => 'Manajer', 'cashier' => 'Kasir'];
         $avatarColors = [
             'admin'   => 'from-purple-500 to-indigo-600',
             'manager' => 'from-blue-500 to-cyan-600',
-            'cashier' => 'from-gray-400 to-gray-500',
+            'cashier' => 'from-orange-400 to-orange-500',
         ];
     @endphp
 
     {{-- TABLE VIEW --}}
     <div x-show="view === 'table'" x-cloak>
-        <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="border-b border-gray-100 bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                <table class="fb-table">
+                    <thead>
                         <tr>
-                            <th class="px-4 py-3 text-left">Pengguna</th>
-                            <th class="px-4 py-3 text-left">Kontak</th>
-                            <th class="px-4 py-3 text-left">Role</th>
-                            <th class="px-4 py-3 text-left">Status</th>
-                            <th class="px-4 py-3 text-right">Aksi</th>
+                            <th>Pengguna</th>
+                            <th>Kontak</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-50">
+                    <tbody>
                         @forelse ($users as $user)
-                            <tr class="hover:bg-gray-50/60 transition-colors">
-                                <td class="px-4 py-3">
+                            <tr>
+                                <td>
                                     <div class="flex items-center gap-3">
-                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $avatarColors[$user->role] ?? 'from-gray-400 to-gray-500' }} text-xs font-bold text-white shadow-sm">
-                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br {{ $avatarColors[$user->role] ?? 'from-gray-400 to-gray-500' }} text-xs font-bold text-white">
+                                            {{ strtoupper(substr($user->name, 0, 2)) }}
                                         </div>
                                         <div>
                                             <p class="text-sm font-semibold text-gray-900">{{ $user->name }}</p>
                                             @if ($user->id === auth()->id())
-                                                <span class="text-[10px] font-medium text-blue-500">Anda</span>
+                                                <span class="text-[10px] font-medium text-orange-500">Anda</span>
                                             @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3">
+                                <td>
                                     <p class="text-xs text-gray-700">{{ $user->email }}</p>
                                     <p class="text-xs text-gray-400">{{ $user->phone ?? '-' }}</p>
                                 </td>
-                                <td class="px-4 py-3">
-                                    <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-700' }}">
+                                <td>
+                                    <span class="fb-badge {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-600' }}">
                                         {{ $roleLabels[$user->role] ?? ucfirst($user->role) }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3">
+                                <td>
                                     @if ($user->is_active)
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Aktif
+                                        <span class="fb-badge fb-badge-green">
+                                            <span class="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Aktif
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-red-400"></span> Nonaktif
+                                        <span class="fb-badge fb-badge-red">
+                                            <span class="mr-1 h-1.5 w-1.5 rounded-full bg-red-400"></span> Nonaktif
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3">
+                                <td>
                                     <div class="flex items-center justify-end gap-1.5">
                                         <a href="{{ route('pos.users.edit', $user) }}"
-                                            class="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
-                                            <i class="fas fa-edit"></i>
+                                            class="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                                            <i class="fas fa-edit text-[11px]"></i> Edit
                                         </a>
                                         @if ($user->id !== auth()->id())
                                             <form method="POST" action="{{ route('pos.users.toggle', $user) }}">
                                                 @csrf @method('PATCH')
                                                 <button type="submit" title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}"
-                                                    class="rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors {{ $user->is_active ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50' }}">
-                                                    <i class="fas {{ $user->is_active ? 'fa-ban' : 'fa-check' }}"></i>
+                                                    class="inline-flex items-center rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors
+                                                    {{ $user->is_active
+                                                        ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
+                                                        : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50' }}">
+                                                    <i class="fas {{ $user->is_active ? 'fa-ban' : 'fa-check' }} text-[11px]"></i>
                                                 </button>
                                             </form>
                                             <form method="POST" action="{{ route('pos.users.destroy', $user) }}"
                                                 onsubmit="return confirm('Hapus pengguna {{ addslashes($user->name) }}? Tindakan ini tidak dapat dibatalkan.')">
                                                 @csrf @method('DELETE')
                                                 <button type="submit"
-                                                    class="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50">
-                                                    <i class="fas fa-trash"></i>
+                                                    class="inline-flex items-center rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
+                                                    <i class="fas fa-trash text-[11px]"></i>
                                                 </button>
                                             </form>
                                         @endif
@@ -164,9 +156,16 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-12 text-center text-sm text-gray-400">
-                                    <i class="fas fa-users mb-2 block text-3xl text-gray-300"></i>
-                                    Tidak ada pengguna ditemukan.
+                                <td colspan="5" class="py-14 text-center">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
+                                            <i class="fas fa-users text-xl text-gray-300"></i>
+                                        </div>
+                                        <p class="text-sm font-medium text-gray-400">Tidak ada pengguna ditemukan</p>
+                                        @if ($q || request('role'))
+                                            <a href="{{ route('pos.users.index') }}" class="text-xs text-orange-500 hover:underline">Hapus filter</a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
@@ -184,25 +183,26 @@
     {{-- GRID VIEW --}}
     <div x-show="view === 'grid'" x-cloak>
         @if ($users->isEmpty())
-            <div class="rounded-2xl border border-gray-100 bg-white px-4 py-12 text-center text-sm text-gray-400 shadow-sm">
-                <i class="fas fa-users mb-2 block text-3xl text-gray-300"></i>
-                Tidak ada pengguna ditemukan.
+            <div class="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white py-14 text-center shadow-sm">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
+                    <i class="fas fa-users text-xl text-gray-300"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-400">Tidak ada pengguna ditemukan</p>
             </div>
         @else
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @foreach ($users as $user)
-                    <div class="group relative rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-gray-200">
-                        {{-- Badge self --}}
+                    <div class="group relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-card-lg hover:border-gray-300">
                         @if ($user->id === auth()->id())
-                            <span class="absolute top-3 right-3 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-600">Anda</span>
+                            <span class="absolute top-3 right-3 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-600">Anda</span>
                         @endif
 
                         {{-- Avatar + Info --}}
                         <div class="flex items-start gap-3">
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br {{ $avatarColors[$user->role] ?? 'from-gray-400 to-gray-500' }} text-base font-bold text-white shadow-md">
-                                {{ strtoupper(substr($user->name, 0, 1)) }}
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $avatarColors[$user->role] ?? 'from-gray-400 to-gray-500' }} text-sm font-bold text-white">
+                                {{ strtoupper(substr($user->name, 0, 2)) }}
                             </div>
-                            <div class="min-w-0 flex-1 pr-6">
+                            <div class="min-w-0 flex-1 {{ $user->id === auth()->id() ? 'pr-10' : '' }}">
                                 <p class="truncate text-sm font-bold text-gray-900">{{ $user->name }}</p>
                                 <p class="truncate text-xs text-gray-500">{{ $user->email }}</p>
                                 @if ($user->phone)
@@ -212,32 +212,35 @@
                         </div>
 
                         {{-- Badges --}}
-                        <div class="mt-3 flex items-center gap-1.5">
-                            <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-700' }}">
+                        <div class="mt-3 flex flex-wrap items-center gap-1.5">
+                            <span class="fb-badge {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-600' }}">
                                 {{ $roleLabels[$user->role] ?? ucfirst($user->role) }}
                             </span>
                             @if ($user->is_active)
-                                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Aktif
+                                <span class="fb-badge fb-badge-green">
+                                    <span class="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Aktif
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-600">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-red-400"></span> Nonaktif
+                                <span class="fb-badge fb-badge-red">
+                                    <span class="mr-1 h-1.5 w-1.5 rounded-full bg-red-400"></span> Nonaktif
                                 </span>
                             @endif
                         </div>
 
                         {{-- Actions --}}
-                        <div class="mt-3 flex items-center gap-1.5 border-t border-gray-50 pt-3">
+                        <div class="mt-3 flex items-center gap-1.5 border-t border-gray-100 pt-3">
                             <a href="{{ route('pos.users.edit', $user) }}"
-                                class="flex-1 rounded-lg border border-gray-200 py-1.5 text-center text-xs font-semibold text-gray-600 hover:bg-gray-50 transition">
+                                class="flex-1 rounded-lg border border-gray-200 py-1.5 text-center text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-edit mr-1"></i> Edit
                             </a>
                             @if ($user->id !== auth()->id())
                                 <form method="POST" action="{{ route('pos.users.toggle', $user) }}">
                                     @csrf @method('PATCH')
                                     <button type="submit" title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}"
-                                        class="rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition {{ $user->is_active ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50' }}">
+                                        class="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors
+                                        {{ $user->is_active
+                                            ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
+                                            : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50' }}">
                                         <i class="fas {{ $user->is_active ? 'fa-ban' : 'fa-check' }}"></i>
                                     </button>
                                 </form>
@@ -245,7 +248,7 @@
                                     onsubmit="return confirm('Hapus pengguna {{ addslashes($user->name) }}? Tindakan ini tidak dapat dibatalkan.')">
                                     @csrf @method('DELETE')
                                     <button type="submit"
-                                        class="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition">
+                                        class="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -255,7 +258,7 @@
                 @endforeach
             </div>
             @if ($users->hasPages())
-                <div class="rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm">
+                <div class="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
                     {{ $users->links() }}
                 </div>
             @endif

@@ -5,8 +5,8 @@
     <div class="space-y-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Stok & Gudang</h1>
-                <p class="mt-0.5 text-sm text-gray-500">{{ $stats['total'] }} produk aktif &middot; {{ $stats['low'] }} menipis &middot; {{ $stats['out'] }} habis</p>
+                <h1 class="text-base font-bold text-gray-900">Stok & Gudang</h1>
+                <p class="mt-0.5 text-xs text-gray-400">{{ $stats['total'] }} produk aktif &middot; {{ $stats['low'] }} menipis &middot; {{ $stats['out'] }} habis</p>
             </div>
             <div class="flex items-center gap-2">
                 <a
@@ -153,7 +153,7 @@
                                 <td class="px-4 py-3 text-right whitespace-nowrap">
                                     <a
                                         href="{{ route('pos.inventory.show', $p) }}"
-                                        class="text-xs font-semibold text-blue-600 hover:underline"
+                                        class="text-xs font-semibold text-orange-500 hover:underline"
                                         >Detail</a
                                     >
                                     @if (auth()->user()->canManageInventory())

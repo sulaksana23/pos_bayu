@@ -1,79 +1,120 @@
-@extends ('layouts.app')
-@section ('title','Shift #' . $shift->id)
+@extends('layouts.app')
+@section('title', 'Shift #' . $shift->id)
+@section('breadcrumb', 'Detail Shift')
 
-@section ('content')
-    <div class="space-y-4">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('pos.shifts.index') }}" class="rounded-lg p-2 hover:bg-gray-100"
-                ><i class="fas fa-arrow-left text-gray-600"></i
-            ></a>
+@section('content')
+<div class="space-y-4">
+
+    {{-- Header --}}
+    <div class="flex items-center gap-3">
+        <a href="{{ route('pos.shifts.index') }}"
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-arrow-left text-xs"></i>
+        </a>
+        <div class="flex min-w-0 flex-1 items-center gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Shift #{{ $shift->id }}</h1>
-                <p class="text-sm text-gray-500">{{ $shift->user->name }} &middot; {{ $shift->opened_at->translatedFormat('d M Y H:i') }} &rarr; {{ $shift->closed_at?->translatedFormat('H:i') ?? '(masih buka)' }}</p>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-base font-bold text-gray-900">Shift #{{ $shift->id }}</h1>
+                    @if ($shift->status === 'open')
+                        <span class="fb-badge fb-badge-green">
+                            <span class="mr-1 h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span> Aktif
+                        </span>
+                    @else
+                        <span class="fb-badge fb-badge-gray">Tutup</span>
+                    @endif
+                </div>
+                <p class="text-xs text-gray-400">
+                    {{ $shift->user->name }} &middot;
+                    {{ $shift->opened_at->translatedFormat('d M Y H:i') }}
+                    @if($shift->closed_at) → {{ $shift->closed_at->format('H:i') }} @else → (sedang berjalan) @endif
+                </p>
             </div>
         </div>
+        @if ($shift->status === 'open' && ($shift->user_id === auth()->id() || auth()->user()->isAdmin()))
+            @include('pos.shifts._close_modal', ['shift' => $shift])
+            <button onclick="document.getElementById('closeShift{{ $shift->id }}').classList.remove('hidden')"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors">
+                <i class="fas fa-stop"></i> Tutup Shift
+            </button>
+        @endif
+    </div>
 
-        <div class="grid grid-cols-2 gap-3 text-sm lg:grid-cols-5">
-            <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-                <p class="text-[10px] text-gray-400 uppercase">Opening Cash</p>
-                <p class="mt-1.5 font-mono text-lg font-bold">Rp {{ number_format($shift->opening_cash,0,',','.') }}</p>
-            </div>
-            <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm">
-                <p class="text-[10px] text-emerald-700 uppercase">Total Sales</p>
-                <p class="mt-1.5 font-mono text-lg font-bold text-emerald-600">Rp {{ number_format($shift->total_sales,0,',','.') }}</p>
-            </div>
-            <div class="rounded-2xl border border-blue-100 bg-blue-50 p-4 shadow-sm">
-                <p class="text-[10px] text-blue-700 uppercase">Cash</p>
-                <p class="mt-1.5 font-mono text-lg font-bold text-blue-600">Rp {{ number_format($shift->total_cash,0,',','.') }}</p>
-            </div>
-            <div class="rounded-2xl border border-violet-100 bg-violet-50 p-4 shadow-sm">
-                <p class="text-[10px] text-violet-700 uppercase">Non-Cash</p>
-                <p class="mt-1.5 font-mono text-lg font-bold text-violet-600">Rp {{ number_format($shift->total_non_cash,0,',','.') }}</p>
-            </div>
-            <div class="rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm">
-                <p class="text-[10px] text-amber-700 uppercase">Trx</p>
-                <p class="mt-1.5 font-mono text-lg font-bold text-amber-600">{{ $shift->transaction_count }}</p>
-            </div>
+    {{-- KPI Cards --}}
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <div class="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Opening Cash</p>
+            <p class="mt-1.5 font-mono text-base font-bold text-gray-900">Rp {{ number_format($shift->opening_cash, 0, ',', '.') }}</p>
         </div>
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Total Sales</p>
+            <p class="mt-1.5 font-mono text-base font-bold text-emerald-700">Rp {{ number_format($shift->total_sales, 0, ',', '.') }}</p>
+        </div>
+        <div class="rounded-xl border border-blue-200 bg-blue-50 p-3.5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-blue-600">Cash</p>
+            <p class="mt-1.5 font-mono text-base font-bold text-blue-700">Rp {{ number_format($shift->total_cash, 0, ',', '.') }}</p>
+        </div>
+        <div class="rounded-xl border border-violet-200 bg-violet-50 p-3.5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-violet-600">Non-Cash</p>
+            <p class="mt-1.5 font-mono text-base font-bold text-violet-700">Rp {{ number_format($shift->total_non_cash, 0, ',', '.') }}</p>
+        </div>
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-3.5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-amber-600">Transaksi</p>
+            <p class="mt-1.5 font-mono text-base font-bold text-amber-700">{{ $shift->transaction_count }}</p>
+        </div>
+    </div>
 
-        <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-                <h3 class="text-base font-bold text-gray-800">Transaksi Shift Ini</h3>
-                <span class="text-xs text-gray-500">{{ $shift->transactions->count() }} item</span>
-            </div>
-            <table class="w-full text-sm">
-                <thead
-                    class="border-b border-gray-100 bg-gray-50 text-xs tracking-wider text-gray-600 uppercase"
-                >
+    {{-- Transactions Table --}}
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+            <h3 class="text-sm font-bold text-gray-800">Transaksi dalam Shift Ini</h3>
+            <span class="fb-badge fb-badge-gray">{{ $shift->transactions->count() }} transaksi</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="fb-table">
+                <thead>
                     <tr>
-                        <th class="px-4 py-3 text-left">Invoice</th>
-                        <th class="px-4 py-3 text-left">Customer</th>
-                        <th class="px-4 py-3 text-left">Kasir</th>
-                        <th class="px-4 py-3 text-right">Total</th>
-                        <th class="px-4 py-3 text-left">Metode</th>
-                        <th class="px-4 py-3 text-left">Waktu</th>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Kasir</th>
+                        <th class="text-right">Total</th>
+                        <th>Metode</th>
+                        <th>Waktu</th>
+                        <th class="text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody>
                     @forelse ($shift->transactions as $t)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 font-mono text-xs">{{ $t->invoice_no }}</td>
-                            <td class="px-4 py-3">{{ $t->customer?->name ?? 'Umum' }}</td>
-                            <td class="px-4 py-3">{{ $t->cashier?->name }}</td>
-                            <td class="px-4 py-3 text-right font-mono font-semibold">
-                                Rp {{ number_format($t->total,0,',','.') }}
+                        <tr>
+                            <td class="font-mono text-xs">{{ $t->invoice_no }}</td>
+                            <td class="text-xs">{{ $t->customer?->name ?? 'Umum' }}</td>
+                            <td class="text-xs">{{ $t->cashier?->name }}</td>
+                            <td class="text-right font-mono text-xs font-semibold">Rp {{ number_format($t->total, 0, ',', '.') }}</td>
+                            <td>
+                                @php
+                                    $pmBadge = match($t->payment_method) {
+                                        'cash'     => 'fb-badge-green',
+                                        'qris'     => 'fb-badge-blue',
+                                        'transfer' => 'fb-badge fb-badge-purple',
+                                        default    => 'fb-badge-gray',
+                                    };
+                                @endphp
+                                <span class="fb-badge {{ $pmBadge }}">{{ strtoupper($t->payment_method) }}</span>
                             </td>
-                            <td class="px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
-                                {{ $t->payment_method }}
-                            </td>
-                            <td class="px-4 py-3 text-xs text-gray-500">
-                                {{ $t->created_at->format('H:i') }}
+                            <td class="text-xs text-gray-400">{{ $t->created_at->format('H:i') }}</td>
+                            <td class="text-right">
+                                <a href="{{ route('pos.cashier.receipt', $t) }}"
+                                    class="text-[11px] font-semibold text-orange-500 hover:underline">
+                                    Struk
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-sm text-gray-400">
-                                Belum ada transaksi di shift ini.
+                            <td colspan="7" class="py-12 text-center">
+                                <div class="flex flex-col items-center gap-2">
+                                    <i class="fas fa-receipt text-2xl text-gray-200"></i>
+                                    <p class="text-sm text-gray-400">Belum ada transaksi di shift ini</p>
+                                </div>
                             </td>
                         </tr>
                     @endforelse
@@ -81,4 +122,5 @@
             </table>
         </div>
     </div>
+</div>
 @endsection

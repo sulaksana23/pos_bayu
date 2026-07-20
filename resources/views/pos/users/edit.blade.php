@@ -11,7 +11,7 @@
             <i class="fas fa-arrow-left text-xs"></i>
         </a>
         <div class="flex min-w-0 flex-1 items-center gap-3">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white shadow-sm">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 text-sm font-bold text-white shadow-sm">
                 {{ strtoupper(substr($user->name, 0, 1)) }}
             </div>
             <div class="min-w-0">
@@ -40,7 +40,7 @@
                 <div class="sm:col-span-2">
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Nama Lengkap <span class="text-red-500">*</span></label>
                     <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('name') border-red-400 @enderror"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('name') border-red-400 @enderror"
                         placeholder="Nama lengkap" />
                     @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -49,7 +49,7 @@
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Email <span class="text-red-500">*</span></label>
                     <input type="email" name="email" value="{{ old('email', $user->email) }}" required
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('email') border-red-400 @enderror"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('email') border-red-400 @enderror"
                         placeholder="email@contoh.com" />
                     @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -58,7 +58,7 @@
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Telepon</label>
                     <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('phone') border-red-400 @enderror"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('phone') border-red-400 @enderror"
                         placeholder="08xx" />
                     @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -68,7 +68,7 @@
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Role <span class="text-red-500">*</span></label>
                     <select name="role" required
                         {{ $user->id === auth()->id() ? 'disabled' : '' }}
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('role') border-red-400 @enderror">
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('role') border-red-400 @enderror">
                         <option value="cashier" {{ old('role', $user->role) === 'cashier' ? 'selected' : '' }}>Kasir</option>
                         <option value="manager" {{ old('role', $user->role) === 'manager' ? 'selected' : '' }}>Manajer</option>
                         <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin</option>
@@ -86,7 +86,7 @@
                         <span class="font-normal text-gray-400">(4-6 digit)</span>
                     </label>
                     <input type="text" name="pin" value="{{ old('pin') }}" maxlength="6" inputmode="numeric"
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('pin') border-red-400 @enderror"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('pin') border-red-400 @enderror"
                         placeholder="Kosongkan jika tidak diubah" />
                     @error('pin') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -98,7 +98,7 @@
                         <label class="inline-flex cursor-pointer items-center gap-2.5">
                             <input type="checkbox" name="is_active" id="is_active" value="1"
                                 {{ old('is_active', $user->is_active) ? 'checked' : '' }}
-                                class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400" />
                             <span class="text-sm font-medium text-gray-700">Akun aktif (bisa login)</span>
                         </label>
                     </div>
@@ -119,7 +119,7 @@
                     </label>
                     <div class="relative">
                         <input :type="showPass ? 'text' : 'password'" name="password" autocomplete="new-password"
-                            class="w-full rounded-lg border border-gray-200 px-3 py-2 pr-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('password') border-red-400 @enderror"
+                            class="w-full rounded-lg border border-gray-200 px-3 py-2 pr-9 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('password') border-red-400 @enderror"
                             placeholder="Min. 8 karakter" />
                         <button type="button" @click="showPass = !showPass"
                             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -134,7 +134,7 @@
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Konfirmasi Password Baru</label>
                     <div class="relative">
                         <input :type="showPass ? 'text' : 'password'" name="password_confirmation" autocomplete="new-password"
-                            class="w-full rounded-lg border border-gray-200 px-3 py-2 pr-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            class="w-full rounded-lg border border-gray-200 px-3 py-2 pr-9 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20"
                             placeholder="Ulangi password baru" />
                         <button type="button" @click="showPass = !showPass"
                             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -152,7 +152,7 @@
                 Batal
             </a>
             <button type="submit"
-                class="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:shadow-md transition-all">
+                class="rounded-lg bg-orange-500 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-orange-600 transition-colors">
                 <i class="fas fa-save mr-1.5"></i> Simpan Perubahan
             </button>
         </div>

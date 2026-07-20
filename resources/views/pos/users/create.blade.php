@@ -34,7 +34,7 @@
                 <div class="sm:col-span-2">
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Nama Lengkap <span class="text-red-500">*</span></label>
                     <input type="text" name="name" value="{{ old('name') }}" required
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('name') border-red-400 @enderror"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('name') border-red-400 @enderror"
                         placeholder="Contoh: Budi Santoso" />
                     @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -43,7 +43,7 @@
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Email <span class="text-red-500">*</span></label>
                     <input type="email" name="email" value="{{ old('email') }}" required
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('email') border-red-400 @enderror"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('email') border-red-400 @enderror"
                         placeholder="email@contoh.com" />
                     @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -52,7 +52,7 @@
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Telepon</label>
                     <input type="text" name="phone" value="{{ old('phone') }}"
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('phone') border-red-400 @enderror"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('phone') border-red-400 @enderror"
                         placeholder="08xx" />
                     @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -61,7 +61,7 @@
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Role <span class="text-red-500">*</span></label>
                     <select name="role" required
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('role') border-red-400 @enderror">
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('role') border-red-400 @enderror">
                         <option value="">Pilih role...</option>
                         <option value="cashier" {{ old('role') === 'cashier' ? 'selected' : '' }}>Kasir</option>
                         <option value="manager" {{ old('role') === 'manager' ? 'selected' : '' }}>Manajer</option>
@@ -76,7 +76,7 @@
                         <span class="font-normal text-gray-400">(4-6 digit, opsional)</span>
                     </label>
                     <input type="text" name="pin" value="{{ old('pin') }}" maxlength="6" inputmode="numeric"
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('pin') border-red-400 @enderror"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('pin') border-red-400 @enderror"
                         placeholder="1234" />
                     @error('pin') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -102,7 +102,7 @@
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Password <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <input :type="showPass ? 'text' : 'password'" name="password" required autocomplete="new-password"
-                            class="w-full rounded-lg border border-gray-200 px-3 py-2 pr-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 @error('password') border-red-400 @enderror"
+                            class="w-full rounded-lg border border-gray-200 px-3 py-2 pr-9 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 @error('password') border-red-400 @enderror"
                             placeholder="Min. 8 karakter" />
                         <button type="button" @click="showPass = !showPass"
                             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -117,7 +117,7 @@
                     <label class="mb-1 block text-xs font-semibold text-gray-600">Konfirmasi Password <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <input :type="showPass ? 'text' : 'password'" name="password_confirmation" required autocomplete="new-password"
-                            class="w-full rounded-lg border border-gray-200 px-3 py-2 pr-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            class="w-full rounded-lg border border-gray-200 px-3 py-2 pr-9 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20"
                             placeholder="Ulangi password" />
                         <button type="button" @click="showPass = !showPass"
                             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">

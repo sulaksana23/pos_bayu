@@ -35,7 +35,7 @@
     </div>
 
     {{-- KPI Cards --}}
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
 
         {{-- Penjualan Hari Ini --}}
         <div class="rounded-2xl border border-gray-100 bg-white p-3.5 shadow-sm">
@@ -56,6 +56,31 @@
                     <span class="text-[11px] font-bold text-emerald-600"><i class="fas fa-arrow-up text-[9px]"></i> {{ $salesGrowth }}%</span>
                 @elseif($salesGrowth < 0)
                     <span class="text-[11px] font-bold text-red-500"><i class="fas fa-arrow-down text-[9px]"></i> {{ abs($salesGrowth) }}%</span>
+                @else
+                    <span class="text-[11px] font-bold text-gray-300">0%</span>
+                @endif
+            </div>
+        </div>
+
+        {{-- Gross Profit --}}
+        <div class="rounded-2xl border border-gray-100 bg-white p-3.5 shadow-sm">
+            <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold tracking-wider text-gray-400 uppercase">Laba Kotor</p>
+                    <p class="mt-1 truncate text-lg font-bold text-emerald-700">
+                        Rp {{ number_format($todayProfit, 0, ',', '.') }}
+                    </p>
+                </div>
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+                    <i class="fas fa-chart-pie text-sm text-emerald-600"></i>
+                </div>
+            </div>
+            <div class="mt-2 flex items-center justify-between">
+                <p class="text-[11px] text-gray-400">Margin {{ $todayMargin }}%</p>
+                @if($profitGrowth > 0)
+                    <span class="text-[11px] font-bold text-emerald-600"><i class="fas fa-arrow-up text-[9px]"></i> {{ $profitGrowth }}%</span>
+                @elseif($profitGrowth < 0)
+                    <span class="text-[11px] font-bold text-red-500"><i class="fas fa-arrow-down text-[9px]"></i> {{ abs($profitGrowth) }}%</span>
                 @else
                     <span class="text-[11px] font-bold text-gray-300">0%</span>
                 @endif
@@ -101,41 +126,47 @@
             </div>
         </div>
 
-        {{-- Shift / Rata-rata --}}
-        @if($openShift)
-        <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-3.5 shadow-sm">
+        {{-- Bulan Ini (Profit) --}}
+        <div class="rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-50 to-pink-50 p-3.5 shadow-sm">
             <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0">
-                    <p class="text-[10px] font-bold tracking-wider text-emerald-600 uppercase">Shift Ini</p>
+                    <p class="text-[10px] font-bold tracking-wider text-purple-600 uppercase">Laba Bulan Ini</p>
                     <p class="mt-1 truncate text-lg font-bold text-gray-900">
-                        Rp {{ number_format($shiftSales, 0, ',', '.') }}
-                    </p>
-                </div>
-                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
-                    <i class="fas fa-business-time text-sm text-emerald-600"></i>
-                </div>
-            </div>
-            <p class="mt-2 text-[11px] text-gray-400">{{ $shiftCount }} transaksi &middot; {{ $activeCashiers }} kasir aktif</p>
-        </div>
-        @else
-        <div class="rounded-2xl border border-gray-100 bg-white p-3.5 shadow-sm">
-            <div class="flex items-start justify-between gap-2">
-                <div class="min-w-0">
-                    <p class="text-[10px] font-bold tracking-wider text-gray-400 uppercase">Rata-rata</p>
-                    <p class="mt-1 truncate text-lg font-bold text-gray-900">
-                        Rp {{ number_format($avgTransaction, 0, ',', '.') }}
+                        Rp {{ number_format($monthProfit, 0, ',', '.') }}
                     </p>
                 </div>
                 <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-100">
-                    <i class="fas fa-chart-line text-sm text-purple-600"></i>
+                    <i class="fas fa-trending-up text-sm text-purple-600"></i>
                 </div>
             </div>
-            <p class="mt-2 text-[11px] text-gray-400">{{ $totalCustomers }} pelanggan
-                @if($newCustomersToday > 0)<span class="text-emerald-600"> +{{ $newCustomersToday }} baru</span>@endif
+            <p class="mt-2 text-[11px] text-gray-400">
+                Margin {{ $monthMargin }}%
+                @if($monthExpenses > 0)
+                &middot; Biaya Rp {{ number_format($monthExpenses, 0, ',', '.') }}
+                @endif
             </p>
         </div>
-        @endif
     </div>
+
+    {{-- Net Profit Bar --}}
+    @if($monthExpenses > 0)
+    <div class="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100">
+                    <i class="fas fa-calculator text-xs text-gray-500"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-700">Laba Bersih Bulan Ini</p>
+                    <p class="text-[10px] text-gray-400">Setelah biaya operasional</p>
+                </div>
+            </div>
+            <p class="text-base font-bold {{ $monthNetProfit >= 0 ? 'text-emerald-600' : 'text-red-500' }}">
+                Rp {{ number_format($monthNetProfit, 0, ',', '.') }}
+            </p>
+        </div>
+    </div>
+    @endif
 
     {{-- Middle Row: Chart + Right Column --}}
     <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -334,6 +365,168 @@
                     @endforeach
                 </div>
             @endif
+        </div>
+    </div>
+
+    {{-- Profit Trend Chart (7 Hari) --}}
+    <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div class="mb-3 flex items-center justify-between">
+            <div>
+                <h2 class="text-sm font-bold text-gray-900">Tren Laba 7 Hari</h2>
+                <p class="text-[11px] text-gray-400">Total laba Rp {{ number_format(collect($weeklyProfitTrend)->sum('profit'), 0, ',', '.') }}</p>
+            </div>
+            <span class="rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
+                <i class="fas fa-chart-line mr-1"></i> Margin
+            </span>
+        </div>
+        @php
+            $profitMax = max(1, collect($weeklyProfitTrend)->max('profit'));
+        @endphp
+        <div class="flex h-32 items-end gap-1 sm:gap-1.5">
+            @foreach($weeklyProfitTrend as $day)
+                @php
+                    $pct = $profitMax > 0 ? max(4, round(($day['profit'] / $profitMax) * 100)) : 4;
+                    $isToday = $loop->last;
+                    $px = round($pct * 1.2);
+                @endphp
+                <div class="group relative flex flex-1 flex-col items-center justify-end"
+                     style="height: 100%"
+                     x-data="{ tt: false }">
+                    <div x-show="tt" x-cloak
+                         class="absolute bottom-full mb-2 z-10 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-xl pointer-events-none"
+                         style="left:50%;transform:translateX(-50%)">
+                        <p class="font-semibold">{{ $day['date'] }}</p>
+                        <p>Rp {{ number_format($day['profit'], 0, ',', '.') }}</p>
+                        <p class="text-gray-300">Margin {{ $day['margin'] }}%</p>
+                    </div>
+                    <div class="w-full cursor-pointer rounded-t-lg transition-all duration-300 hover:opacity-80 {{ $isToday ? 'bg-gradient-to-t from-emerald-500 to-teal-400 shadow-sm shadow-emerald-500/40' : 'bg-emerald-200 hover:bg-emerald-300' }}"
+                         style="height: {{ $px }}px"
+                         @mouseenter="tt = true" @mouseleave="tt = false"
+                         @touchstart.prevent="tt = !tt">
+                    </div>
+                    <span class="mt-1 text-[9px] font-semibold {{ $isToday ? 'text-emerald-600' : 'text-gray-400' }}">
+                        {{ $day['day'] }}
+                    </span>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    {{-- Bottom Row 2: Expenses + POs --}}
+    <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+
+        {{-- Monthly Expense Breakdown --}}
+        <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-sm font-bold text-gray-900">Biaya Bulan Ini</h2>
+                <a href="{{ route('pos.expenses.index') }}" class="text-[11px] font-semibold text-orange-500 hover:underline">Semua</a>
+            </div>
+            @if($expenseBreakdown->isEmpty())
+                <div class="flex flex-col items-center justify-center py-6 text-center">
+                    <i class="fas fa-receipt text-2xl text-gray-200 mb-1.5"></i>
+                    <p class="text-xs text-gray-400">Belum ada biaya bulan ini</p>
+                </div>
+            @else
+                @php $maxExpense = max(1, $expenseBreakdown->max('total')); @endphp
+                <div class="space-y-2">
+                    @foreach($expenseBreakdown as $exp)
+                    <div>
+                        <div class="mb-1 flex items-center justify-between">
+                            <span class="text-xs font-medium text-gray-700">{{ $expenseCategories[$exp->category] ?? $exp->category }}</span>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-gray-900">Rp {{ number_format($exp->total, 0, ',', '.') }}</span>
+                                <span class="text-[10px] text-gray-400 ml-1">{{ $exp->count }}x</span>
+                            </div>
+                        </div>
+                        <div class="h-1.5 w-full rounded-full bg-gray-100">
+                            <div class="h-1.5 rounded-full bg-gradient-to-r from-rose-400 to-red-400"
+                                 style="width: {{ round(($exp->total / $maxExpense) * 100) }}%"></div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="mt-3 border-t border-gray-100 pt-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="font-bold text-gray-700">Total Biaya</span>
+                        <span class="font-bold text-red-600">Rp {{ number_format($monthExpenses, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        {{-- Recent Expenses / Pending POs --}}
+        <div class="space-y-3">
+
+            {{-- Recent Expenses --}}
+            <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <div class="mb-2 flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-gray-900">Biaya Terbaru</h2>
+                    <a href="{{ route('pos.expenses.create') }}" class="text-[11px] font-semibold text-orange-500 hover:underline">
+                        <i class="fas fa-plus mr-0.5"></i> Baru
+                    </a>
+                </div>
+                @if($recentExpenses->isEmpty())
+                    <p class="text-xs text-gray-400 py-3 text-center">Belum ada biaya</p>
+                @else
+                    <div class="space-y-1">
+                        @foreach($recentExpenses as $exp)
+                        <div class="flex items-center gap-2 rounded-lg p-1.5 hover:bg-gray-50 transition">
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg {{ match($exp->category) {
+                                'operational' => 'bg-blue-100', 'utilities' => 'bg-yellow-100', 'rent' => 'bg-purple-100',
+                                'salary' => 'bg-green-100', 'maintenance' => 'bg-orange-100', 'marketing' => 'bg-red-100',
+                                default => 'bg-gray-100',
+                            } }}">
+                                <i class="fas {{ match($exp->category) {
+                                    'operational' => 'fa-store', 'utilities' => 'fa-bolt', 'rent' => 'fa-building',
+                                    'salary' => 'fa-users', 'maintenance' => 'fa-wrench', 'marketing' => 'fa-bullhorn',
+                                    default => 'fa-receipt',
+                                } }} text-[9px] {{ match($exp->category) {
+                                    'operational' => 'text-blue-600', 'utilities' => 'text-yellow-600', 'rent' => 'text-purple-600',
+                                    'salary' => 'text-green-600', 'maintenance' => 'text-orange-600', 'marketing' => 'text-red-600',
+                                    default => 'text-gray-600',
+                                } }}"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[11px] font-semibold text-gray-800">{{ $exp->description }}</p>
+                                <p class="text-[10px] text-gray-400">{{ $exp->expense_date->format('d/m') }}</p>
+                            </div>
+                            <span class="text-[11px] font-bold text-red-500">-Rp {{ number_format($exp->amount, 0, ',', '.') }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            {{-- Pending Purchase Orders --}}
+            <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <div class="mb-2 flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-gray-900">Purchase Order</h2>
+                    <a href="{{ route('pos.purchase-orders.create') }}" class="text-[11px] font-semibold text-orange-500 hover:underline">
+                        <i class="fas fa-plus mr-0.5"></i> Baru
+                    </a>
+                </div>
+                @if($pendingPOs->isEmpty())
+                    <p class="text-xs text-gray-400 py-3 text-center">Tidak ada PO pending</p>
+                @else
+                    <div class="space-y-1">
+                        @foreach($pendingPOs as $po)
+                        <a href="{{ route('pos.purchase-orders.show', $po) }}"
+                           class="flex items-center gap-2 rounded-lg p-1.5 hover:bg-gray-50 transition group">
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-orange-100">
+                                <i class="fas fa-file-invoice text-[9px] text-orange-600"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[11px] font-semibold text-gray-800 group-hover:text-orange-600">{{ $po->po_no }}</p>
+                                <p class="text-[10px] text-gray-400">{{ $po->supplier?->name ?? '-' }}</p>
+                            </div>
+                            <span class="fb-badge {{ $po->status === 'pending' ? 'fb-badge-yellow' : 'fb-badge-blue' }} text-[9px]">
+                                {{ $po->status === 'pending' ? 'Pending' : 'Dipesan' }}
+                            </span>
+                        </a>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 

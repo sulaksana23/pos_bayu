@@ -8,7 +8,12 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
         unzip \
         git \
         curl \
-    && docker-php-ext-install pdo pdo_pgsql
+        autoconf \
+        g++ \
+        make \
+    && docker-php-ext-install pdo pdo_pgsql \
+    && pecl install redis && docker-php-ext-enable redis \
+    && apk del autoconf g++ make
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

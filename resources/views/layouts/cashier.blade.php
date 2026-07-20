@@ -27,6 +27,22 @@
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {{-- Global fetch interceptor: redirect to login on session expiry --}}
+    <script>
+    (function() {
+        const orig = window.fetch;
+        window.fetch = function() {
+            return orig.apply(this, arguments).then(res => {
+                if (res.status === 401 || res.status === 419) {
+                    window.location.href = '/login';
+                }
+                return res;
+            });
+        };
+    })();
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link
         rel="stylesheet"

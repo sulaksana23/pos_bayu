@@ -20,7 +20,12 @@ class CheckRole
         }
 
         $userRole = $request->user()->role ?? 'cashier';
-        
+
+        // superadministrator bypass all role checks
+        if ($userRole === 'superadministrator') {
+            return $next($request);
+        }
+
         if (!in_array($userRole, $roles)) {
             abort(403, 'Unauthorized action.');
         }

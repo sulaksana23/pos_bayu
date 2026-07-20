@@ -2,12 +2,12 @@
 namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Expense;
 use App\Models\PosShift;
 use App\Models\PosTransaction;
+use App\Models\PosTransactionItem;
 use App\Models\Product;
-use App\Models\PosStockMovement;
 use App\Models\Customer;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -151,6 +151,95 @@ class DashboardController extends Controller
             ? round((($todayCount - $yesterdayCount) / $yesterdayCount) * 100, 1)
             : ($todayCount > 0 ? 100 : 0);
 
+        // ══════════════════════════════════════════════════════════════════════
+        // PROFESSIONAL POS FEATURES
+        // ══════════════════════════════════════════════════════════════════════
+
+        // ── Gross Profit (today & month) ────────────────────────────────────
+        $todayCost = PosTransactionItem::whereHas('transaction', function ($q) use ($today) {
+                $q->completed()->whereDate('created_at', $today);
+            })
+            ->select(DB::raw('SUM(cost * qty) as total_cost'))
+            ->value('total_cost') ?? 0;
+
+        $todayProfit = $todaySales - (float) $todayCost;
+        $todayMargin = $todaySales > 0 ? round(($todayProfit / $todaySales) * 100, 1) : 0;
+
+        $monthCost = PosTransactionItem::whereHas('transaction', function ($q) use ($monthStart) {
+                $q->completed()->where('created_at', '>=', $monthStart);
+            })
+            ->select(DB::raw('SUM(cost * qty) as total_cost'))
+            ->value('total_cost') ?? 0;
+
+        $monthProfit = $monthSales - (float) $monthCost;
+        $monthMargin = $monthSales > 0 ? round(($monthProfit / $monthSales) * 100, 1) : 0;
+
+        // ── Yesterday profit ────────────────────────────────────────────────
+        $yesterdayCost = PosTransactionItem::whereHas('transaction', function ($q) use ($yesterday) {
+                $q->completed()->whereDate('created_at', $yesterday);
+            })
+            ->select(DB::raw('SUM(cost * qty) as total_cost'))
+            ->value('total_cost') ?? 0;
+        $yesterdayProfit = $yesterdaySales - (float) $yesterdayCost;
+        $profitGrowth = $yesterdayProfit > 0
+            ? round((($todayProfit - $yesterdayProfit) / $yesterdayProfit) * 100, 1)
+            : ($todayProfit > 0 ? 100 : 0);
+
+        // ── Weekly profit trend ─────────────────────────────────────────────
+        $weeklyProfitTrend = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $d = Carbon::now()->subDays($i);
+            $daySales = (float) PosTransaction::completed()->whereDate('created_at', $d)->sum('total');
+            $dayCost = PosTransactionItem::whereHas('transaction', function ($q) use ($d) {
+                    $q->completed()->whereDate('created_at', $d);
+                })
+                ->select(DB::raw('SUM(cost * qty) as total_cost'))
+                ->value('total_cost') ?? 0;
+            $weeklyProfitTrend[] = [
+                'date'   => $d->format('d M'),
+                'day'    => $d->isoFormat('ddd'),
+                'profit' => $daySales - (float) $dayCost,
+                'margin' => $daySales > 0 ? round((($daySales - (float) $dayCost) / $daySales) * 100, 1) : 0,
+            ];
+        }
+
+        // ── Monthly expenses ────────────────────────────────────────────────
+        $todayExpenses  = Expense::whereDate('expense_date', $today)->sum('amount');
+        $monthExpenses  = Expense::where('expense_date', '>=', $monthStart)->sum('amount');
+        $monthNetProfit = $monthProfit - $monthExpenses;
+
+        // ── Expense breakdown this month ─────────────────────────────────────
+        $expenseBreakdown = Expense::where('expense_date', '>=', $monthStart)
+            ->select('category', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->get();
+
+        // ── Today's expenses (recent 5) ──────────────────────────────────────
+        $recentExpenses = Expense::with('user')
+            ->where('expense_date', '>=', $monthStart)
+            ->latest('expense_date')
+            ->limit(5)
+            ->get();
+
+        // ── Upcoming purchase orders ─────────────────────────────────────────
+        $pendingPOs = \App\Models\PurchaseOrder::with('supplier')
+            ->whereIn('status', ['pending', 'ordered'])
+            ->orderBy('expected_date')
+            ->limit(5)
+            ->get();
+
+        // ── Expense categories for labels ────────────────────────────────────
+        $expenseCategories = [
+            'operational'  => 'Operasional',
+            'utilities'    => 'Utilitas',
+            'rent'         => 'Sewa',
+            'salary'       => 'Gaji',
+            'maintenance'  => 'Perawatan',
+            'marketing'    => 'Marketing',
+            'other'        => 'Lainnya',
+        ];
+
         return view('pos.dashboard', compact(
             'todaySales', 'todayCount', 'todayCash', 'todayNonCash',
             'yesterdaySales', 'yesterdayCount',
@@ -162,7 +251,13 @@ class DashboardController extends Controller
             'totalCustomers', 'newCustomersToday', 'newCustomersMonth',
             'paymentBreakdown',
             'openShift', 'activeShifts', 'activeCashiers',
-            'shiftSales', 'shiftCount'
+            'shiftSales', 'shiftCount',
+            // ── Professional features ──
+            'todayProfit', 'todayMargin', 'monthProfit', 'monthMargin',
+            'profitGrowth', 'weeklyProfitTrend',
+            'todayExpenses', 'monthExpenses', 'monthNetProfit',
+            'expenseBreakdown', 'expenseCategories',
+            'recentExpenses', 'pendingPOs'
         ));
     }
 }

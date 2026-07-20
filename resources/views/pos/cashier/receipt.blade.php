@@ -77,8 +77,8 @@
 <body>
     <div class="receipt">
         <div class="c big">{{ strtoupper(config('app.name', 'POS')) }}</div>
-        <div class="c small">Jl. Contoh No. 123, Makassar</div>
-        <div class="c small">Telp: 0812-3456-7890</div>
+        <div class="c small">{{ config('pos.store_address', 'Jl. Contoh No. 123') }}</div>
+        <div class="c small">Telp: {{ config('pos.store_phone', '0812-3456-7890') }}</div>
         <div class="line"></div>
         <div class="row small"><span>No</span><span>{{ $transaction->invoice_no }}</span></div>
         <div class="row small">
@@ -144,7 +144,7 @@
             <div class="c small">Catatan: {{ $transaction->notes }}</div>
         @endif
         <div class="line"></div>
-        <div class="c small">— Powered by GHouse POS —</div>
+        <div class="c small">— Powered by {{ config('app.name', 'Balitech POS') }} —</div>
     </div>
 
     <div

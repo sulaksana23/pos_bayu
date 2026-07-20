@@ -7,10 +7,13 @@ use App\Http\Controllers\Pos\CashierController;
 use App\Http\Controllers\Pos\CategoryController;
 use App\Http\Controllers\Pos\CustomerController;
 use App\Http\Controllers\Pos\DashboardController;
+use App\Http\Controllers\Pos\ExpenseController;
 use App\Http\Controllers\Pos\InventoryController;
 use App\Http\Controllers\Pos\ProductController;
+use App\Http\Controllers\Pos\PurchaseOrderController;
 use App\Http\Controllers\Pos\ReportController;
 use App\Http\Controllers\Pos\ShiftController;
+use App\Http\Controllers\Pos\SupplierController;
 use App\Http\Controllers\Pos\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,7 +56,7 @@ Route::middleware('auth')->name('pos.')->group(function () {
         Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
         Route::get('/shifts/open', [ShiftController::class, 'showOpen'])->name('shifts.open');
         Route::post('/shifts/open', [ShiftController::class, 'open'])->name('shifts.open.store');
-        Route::post('/shifts/close', [ShiftController::class, 'close'])->name('shifts.close');
+        Route::post('/shifts/{shift}/close', [ShiftController::class, 'close'])->name('shifts.close');
         Route::get('/shifts/{shift}', [ShiftController::class, 'show'])->name('shifts.show');
 
         // Cashier
@@ -80,7 +83,7 @@ Route::middleware('auth')->name('pos.')->group(function () {
 
         // Accounting
         Route::get('/accounting', [AccountingController::class, 'index'])->name('accounting.index');
-        Route::get('/accounting/cash-drawer', [AccountingController::class, 'cashDrawer'])->name('accounting.cash-drawer');
+        Route::get('/accounting/daily', [AccountingController::class, 'daily'])->name('accounting.daily');
 
         // Reports
         Route::prefix('reports')->name('reports.')->group(function () {
@@ -88,12 +91,34 @@ Route::middleware('auth')->name('pos.')->group(function () {
             Route::get('/products', [ReportController::class, 'products'])->name('products');
             Route::get('/customers', [ReportController::class, 'customers'])->name('customers');
             Route::get('/inventory', [ReportController::class, 'inventory'])->name('inventory');
+            Route::get('/expenses', [ReportController::class, 'expenses'])->name('expenses');
+            Route::get('/export', [ReportController::class, 'export'])->name('export');
         });
 
         // API endpoints for search/autocomplete
         Route::prefix('api')->name('api.')->group(function () {
-            Route::get('/products/search', [ApiController::class, 'searchProducts'])->name('products.search');
+            Route::get('/products/search', [ApiController::class, 'searchProduct'])->name('products.search');
             Route::get('/customers/search', [ApiController::class, 'searchCustomers'])->name('customers.search');
         });
+
+        // ── Professional Features ───────────────────────────────────────────
+
+        // Suppliers
+        Route::resource('suppliers', SupplierController::class);
+        Route::patch('/suppliers/{supplier}/toggle', [SupplierController::class, 'toggle'])->name('suppliers.toggle');
+
+        // Purchase Orders
+        Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+        Route::get('/purchase-orders/create', [PurchaseOrderController::class, 'create'])->name('purchase-orders.create');
+        Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+        Route::get('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
+        Route::get('/purchase-orders/{purchaseOrder}/edit', [PurchaseOrderController::class, 'edit'])->name('purchase-orders.edit');
+        Route::put('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'update'])->name('purchase-orders.update');
+        Route::post('/purchase-orders/{purchaseOrder}/mark-ordered', [PurchaseOrderController::class, 'markOrdered'])->name('purchase-orders.mark-ordered');
+        Route::post('/purchase-orders/{purchaseOrder}/mark-received', [PurchaseOrderController::class, 'markReceived'])->name('purchase-orders.mark-received');
+        Route::delete('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'destroy'])->name('purchase-orders.destroy');
+
+        // Expenses
+        Route::resource('expenses', ExpenseController::class);
     });
 });

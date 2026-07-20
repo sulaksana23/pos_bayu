@@ -1,67 +1,86 @@
 @props ([
-    'type' => 'text',
-    'label' => null,
-    'error' => null,
-    'hint' => null,
-    'icon' => null,
+    'type'         => 'text',
+    'label'        => null,
+    'error'        => null,
+    'hint'         => null,
+    'icon'         => null,
     'iconPosition' => 'left',
-    'disabled' => false,
-    'required' => false,
+    'disabled'     => false,
+    'required'     => false,
+    'prefix'       => null,
+    'suffix'       => null,
 ])
 
 @php
-    $inputId = $attributes->get('id', 'input-' . Str::random(8));
-    $baseClasses = 'block w-full rounded-lg border bg-slate-800/50 text-slate-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed';
-    
-    $errorClasses = $error ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 hover:border-slate-500';
-    
-    $iconClasses = $icon ? ($iconPosition === 'left' ? 'pl-10' : 'pr-10') : '';
-    
-    $sizeClasses = 'px-4 py-2.5 text-sm';
-    
-    $classes = $baseClasses . ' ' . $errorClasses . ' ' . $iconClasses . ' ' . $sizeClasses;
+    $inputId  = $attributes->get('id', 'input-' . Str::random(6));
+    $hasError = (bool) $error;
+
+    $base = 'block w-full rounded-lg border bg-white text-sm text-gray-900 placeholder-gray-400 transition-all duration-150 focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed';
+    $borderCls = $hasError ? 'border-red-400 focus:border-red-400 focus:ring-red-400/20' : 'border-gray-200 hover:border-gray-300 focus:border-orange-400 focus:ring-orange-400/20';
+    $paddingCls = 'py-2 ';
+    $paddingCls .= $icon && $iconPosition === 'left'  ? 'pl-9 pr-3'  : '';
+    $paddingCls .= $icon && $iconPosition === 'right' ? 'pl-3 pr-9'  : '';
+    $paddingCls .= (!$icon && !$prefix && !$suffix)   ? 'px-3'       : '';
+    $paddingCls .= $prefix                             ? 'pl-10 pr-3' : '';
+    $paddingCls .= $suffix                             ? 'pl-3 pr-10' : '';
+
+    $classes = $base . ' ' . $borderCls . ' ' . $paddingCls;
 @endphp
 
 <div {{ $attributes->only('class') }}>
     @if ($label)
-        <label for="{{ $inputId }}" class="mb-2 block text-sm font-medium text-slate-300">
+        <label for="{{ $inputId }}" class="mb-1.5 block text-xs font-semibold text-gray-700">
             {{ $label }}
             @if ($required)
-                <span class="text-red-400">*</span>
+                <span class="text-red-500">*</span>
             @endif
         </label>
     @endif
 
     <div class="relative">
+        {{-- Left icon --}}
         @if ($icon && $iconPosition === 'left')
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <x-dynamic-component :component="$icon" class="h-5 w-5 text-slate-400" />
+                <i class="{{ $icon }} text-xs text-gray-400"></i>
+            </div>
+        @endif
+
+        {{-- Prefix --}}
+        @if ($prefix)
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <span class="text-sm text-gray-400">{{ $prefix }}</span>
             </div>
         @endif
 
         <input
             type="{{ $type }}"
             id="{{ $inputId }}"
-            {{ $attributes->except(['class'])->merge(['class' => $classes]) }}
+            {{ $attributes->except('class')->merge(['class' => $classes]) }}
             @if ($disabled) disabled @endif
             @if ($required) required @endif
         />
 
+        {{-- Right icon --}}
         @if ($icon && $iconPosition === 'right')
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <x-dynamic-component :component="$icon" class="h-5 w-5 text-slate-400" />
+                <i class="{{ $icon }} text-xs text-gray-400"></i>
+            </div>
+        @endif
+
+        {{-- Suffix --}}
+        @if ($suffix)
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <span class="text-sm text-gray-400">{{ $suffix }}</span>
             </div>
         @endif
     </div>
 
-    @if ($error)
-        <p class="mt-2 flex items-center gap-1 text-sm text-red-400">
-            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
+    @if ($hasError)
+        <p class="mt-1 flex items-center gap-1 text-xs text-red-500">
+            <i class="fas fa-exclamation-circle text-[10px]"></i>
             {{ $error }}
         </p>
     @elseif ($hint)
-        <p class="mt-2 text-sm text-slate-400">{{ $hint }}</p>
+        <p class="mt-1 text-xs text-gray-400">{{ $hint }}</p>
     @endif
 </div>

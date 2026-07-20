@@ -4,19 +4,46 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Category extends Model
 {
     use HasFactory;
 
     protected $table = 'pos_categories';
-    protected $fillable = ['name','slug','color','icon','sort_order','is_active'];
 
-    protected $casts = ['is_active'=>'boolean', 'sort_order'=>'integer'];
+    protected $fillable = [
+        'name', 'slug', 'description', 'color', 'icon',
+        'sort_order', 'is_active',
+    ];
 
-    public function products(): HasMany { return $this->hasMany(Product::class, 'category_id'); }
+    protected $casts = [
+        'is_active'   => 'boolean',
+        'sort_order'  => 'integer',
+    ];
 
-    public function scopeActive($q) { return $q->where('is_active', true); }
+    protected static function booted(): void
+    {
+        static::creating(function (self $category) {
+            if (! $category->slug) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
 
-    public function getProductsCountAttribute(): int { return $this->products()->count(); }
+        static::updating(function (self $category) {
+            if ($category->isDirty('name') && ! $category->isDirty('slug')) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class, 'category_id');
+    }
+
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true);
+    }
 }

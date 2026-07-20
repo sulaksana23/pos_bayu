@@ -10,15 +10,13 @@ use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    // Middleware applied via routes in Laravel 13
-
     public function index(Request $request): View
     {
         $q = $request->string('q')->toString();
-        
+
         $categories = Category::query()
             ->withCount('products')
-            ->when($q !== '', fn ($qq) => $qq->where('name','like',"%$q%"))
+            ->when($q !== '', fn ($qq) => $qq->where('name', 'like', "%$q%"))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate(20)->withQueryString();
@@ -34,16 +32,19 @@ class CategoryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name' => ['required','string','max:64','unique:pos_categories,name'],
-            'description' => ['nullable','string','max:255'],
-            'sort_order' => ['required','integer','min:0'],
-            'is_active' => ['nullable','boolean'],
+            'name'       => ['required', 'string', 'max:64', 'unique:pos_categories,name'],
+            'description'=> ['nullable', 'string', 'max:255'],
+            'color'      => ['nullable', 'string', 'max:16'],
+            'icon'       => ['nullable', 'string', 'max:32'],
+            'sort_order' => ['required', 'integer', 'min:0'],
+            'is_active'  => ['nullable', 'boolean'],
         ]);
 
         $data['is_active'] = $request->boolean('is_active', true);
         Category::create($data);
 
-        return redirect()->route('pos.categories.index')->with('success','Kategori berhasil ditambahkan.');
+        return redirect()->route('pos.categories.index')
+            ->with('success', 'Kategori berhasil ditambahkan.');
     }
 
     public function edit(Category $category): View
@@ -54,25 +55,29 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category): RedirectResponse
     {
         $data = $request->validate([
-            'name' => ['required','string','max:64', Rule::unique('pos_categories','name')->ignore($category->id)],
-            'description' => ['nullable','string','max:255'],
-            'sort_order' => ['required','integer','min:0'],
-            'is_active' => ['nullable','boolean'],
+            'name'       => ['required', 'string', 'max:64', Rule::unique('pos_categories', 'name')->ignore($category->id)],
+            'description'=> ['nullable', 'string', 'max:255'],
+            'color'      => ['nullable', 'string', 'max:16'],
+            'icon'       => ['nullable', 'string', 'max:32'],
+            'sort_order' => ['required', 'integer', 'min:0'],
+            'is_active'  => ['nullable', 'boolean'],
         ]);
 
         $data['is_active'] = $request->boolean('is_active', true);
         $category->update($data);
 
-        return redirect()->route('pos.categories.index')->with('success','Kategori berhasil diperbarui.');
+        return redirect()->route('pos.categories.index')
+            ->with('success', 'Kategori berhasil diperbarui.');
     }
 
     public function destroy(Category $category): RedirectResponse
     {
         if ($category->products()->exists()) {
-            return back()->with('error','Kategori tidak dapat dihapus karena masih memiliki produk.');
+            return back()->with('error', 'Kategori tidak dapat dihapus karena masih memiliki produk.');
         }
-        
+
         $category->delete();
-        return redirect()->route('pos.categories.index')->with('success','Kategori berhasil dihapus.');
+        return redirect()->route('pos.categories.index')
+            ->with('success', 'Kategori berhasil dihapus.');
     }
 }
