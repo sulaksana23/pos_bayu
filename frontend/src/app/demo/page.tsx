@@ -4,11 +4,16 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
+  BarChart3,
+  Boxes,
   Cookie,
   CupSoda,
+  LayoutDashboard,
   LayoutGrid,
   Minus,
   Package,
+  PenTool,
+  Pill,
   Plus,
   Receipt as ReceiptIcon,
   ShieldCheck,
@@ -17,6 +22,7 @@ import {
   Sparkles,
   SprayCan,
   Trash2,
+  UsersRound,
   UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
@@ -38,7 +44,17 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   Cookie,
   ShoppingBasket,
   SprayCan,
+  Pill,
+  PenTool,
 };
+
+/** Highlights shown in the empty-cart panel — a peek at what the real app adds beyond this demo. */
+const FULL_APP_FEATURES = [
+  { icon: LayoutDashboard, label: "Dashboard penjualan & laba real-time" },
+  { icon: UsersRound, label: "Multi-kasir dengan shift & hak akses" },
+  { icon: Boxes, label: "Stok, kategori & purchase order otomatis" },
+  { icon: BarChart3, label: "Laporan lengkap & ekspor data" },
+];
 
 function CategoryIcon({ icon, className, style }: { icon: string | null | undefined; className?: string; style?: React.CSSProperties }) {
   const Icon = (icon && CATEGORY_ICONS[icon]) || Package;
@@ -110,7 +126,7 @@ export default function DemoPage() {
     [category, q],
   );
   const qtyById = useMemo(() => Object.fromEntries(lines.map((l) => [l.product.id, l.qty])), [lines]);
-  const popularIds = useMemo(() => new Set(MOCK_PRODUCTS.slice(0, 3).map((p) => p.id)), []);
+  const popularIds = useMemo(() => new Set([1, 7, 14, 19, 29]), []);
 
   const total = lines.reduce((s, l) => s + toNumber(l.product.price) * l.qty, 0);
   const items = lines.reduce((s, l) => s + l.qty, 0);
@@ -174,13 +190,31 @@ export default function DemoPage() {
 
       <ul className="flex-1 divide-y divide-border overflow-y-auto">
         {lines.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-10 text-center">
-            <div className="grid size-14 place-items-center rounded-2xl bg-surface-2 text-muted">
-              <ShoppingCart className="size-6" />
+          <div className="flex flex-1 flex-col">
+            <div className="flex flex-col items-center gap-3 px-6 pt-10 pb-6 text-center">
+              <div className="grid size-14 place-items-center rounded-2xl bg-surface-2 text-muted">
+                <ShoppingCart className="size-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Keranjang masih kosong</p>
+                <p className="mt-1 text-xs text-muted">Klik salah satu produk di sebelah kiri untuk mencoba alur kasir.</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">Keranjang masih kosong</p>
-              <p className="mt-1 text-xs text-muted">Klik salah satu produk di sebelah kiri untuk mencoba alur kasir.</p>
+            <div className="mx-4 mb-4 rounded-xl border border-dashed border-border p-4">
+              <p className="mb-3 text-xs font-semibold tracking-wide text-muted uppercase">Selain kasir, aplikasi lengkapnya punya</p>
+              <ul className="space-y-2.5">
+                {FULL_APP_FEATURES.map((f) => (
+                  <li key={f.label} className="flex items-start gap-2.5 text-xs">
+                    <f.icon className="mt-0.5 size-3.5 shrink-0 text-brand-600 dark:text-brand-400" />
+                    <span className="text-muted">{f.label}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/login" target="_top">
+                <Button variant="outline" size="sm" className="mt-3.5 w-full gap-1.5">
+                  Coba fitur lengkap <ArrowRight className="size-3.5" />
+                </Button>
+              </Link>
             </div>
           </div>
         ) : (
