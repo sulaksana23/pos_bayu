@@ -6,16 +6,17 @@ import type { Category, Product } from "./types";
  * a real API is available (see components/pos frontend/README.md).
  */
 export const MOCK_CATEGORIES: Category[] = [
-  { id: 1, name: "Makanan", slug: "makanan", description: null, color: "#f97316", icon: null, sort_order: 1, is_active: true },
-  { id: 2, name: "Minuman", slug: "minuman", description: null, color: "#3b82f6", icon: null, sort_order: 2, is_active: true },
-  { id: 3, name: "Snack", slug: "snack", description: null, color: "#a855f7", icon: null, sort_order: 3, is_active: true },
-  { id: 4, name: "Sembako", slug: "sembako", description: null, color: "#10b981", icon: null, sort_order: 4, is_active: true },
-  { id: 5, name: "Rumah Tangga", slug: "rumah-tangga", description: null, color: "#ef4444", icon: null, sort_order: 5, is_active: true },
+  { id: 1, name: "Makanan", slug: "makanan", description: null, color: "#f97316", icon: "UtensilsCrossed", sort_order: 1, is_active: true },
+  { id: 2, name: "Minuman", slug: "minuman", description: null, color: "#3b82f6", icon: "CupSoda", sort_order: 2, is_active: true },
+  { id: 3, name: "Snack", slug: "snack", description: null, color: "#a855f7", icon: "Cookie", sort_order: 3, is_active: true },
+  { id: 4, name: "Sembako", slug: "sembako", description: null, color: "#10b981", icon: "ShoppingBasket", sort_order: 4, is_active: true },
+  { id: 5, name: "Rumah Tangga", slug: "rumah-tangga", description: null, color: "#ef4444", icon: "SprayCan", sort_order: 5, is_active: true },
 ];
 
 const p = (id: number, category_id: number, name: string, sku: string, price: number, stock: number, unit = "pcs"): Product => ({
   id,
   category_id,
+  category: MOCK_CATEGORIES.find((c) => c.id === category_id) ?? null,
   name,
   sku,
   barcode: null,
@@ -37,7 +38,7 @@ export const MOCK_PRODUCTS: Product[] = [
   p(5, 2, "Aqua 600ml", "AQ-600", 4000, 200, "botol"),
   p(6, 2, "Teh Botol Sosro", "TB-SOSRO", 5000, 150, "botol"),
   p(7, 2, "Kopi Kapal Api Sachet", "KPL-API", 1500, 300, "sachet"),
-  p(8, 2, "Susu Ultra Coklat 250ml", "ULT-CKL", 6000, 90, "kotak"),
+  p(8, 2, "Susu Ultra Coklat 250ml", "ULT-CKL", 6000, 4, "kotak"),
   p(9, 3, "Chitato Sapi Panggang", "CHT-SP", 12000, 45),
   p(10, 3, "Oreo Original", "ORO-ORI", 8500, 70),
   p(11, 3, "Kacang Garuda 200g", "GRD-200", 18000, 36),
@@ -49,5 +50,5 @@ export const MOCK_PRODUCTS: Product[] = [
   p(17, 5, "Sabun Cuci Piring 800ml", "SBN-CP", 14000, 30, "botol"),
   p(18, 5, "Deterjen Bubuk 800g", "DTR-800", 18000, 28),
   p(19, 5, "Tisu Gulung 4 Roll", "TSU-4R", 16000, 55, "pack"),
-  p(20, 5, "Baterai AA 4pcs", "BTR-AA4", 12000, 60, "pack"),
+  p(20, 5, "Baterai AA 4pcs", "BTR-AA4", 12000, 3, "pack"),
 ];
