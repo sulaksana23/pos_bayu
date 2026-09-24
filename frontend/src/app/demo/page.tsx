@@ -2,14 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import { Minus, Package, Plus, ShoppingBag, Sparkles, Trash2 } from "lucide-react";
-import { api } from "@/lib/api";
-import type { Category, PaymentMethod, Product, Transaction } from "@/lib/types";
+import type { PaymentMethod, Product, Transaction } from "@/lib/types";
+import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mock-catalog";
 import { cn, rupiah, toNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { EmptyState, SearchInput, Skeleton } from "@/components/ui/misc";
+import { EmptyState, SearchInput } from "@/components/ui/misc";
 import { Logo, ThemeToggle } from "@/components/layout/app-shell";
 import { PaymentModal } from "@/components/pos/payment-modal";
 import { ProductThumb } from "@/components/pos/product-thumb";
@@ -25,18 +24,12 @@ export default function DemoPage() {
   const [paying, setPaying] = useState(false);
   const [receipt, setReceipt] = useState<Transaction | null>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["demo-catalog"],
-    queryFn: () => api.get<{ categories: Category[]; products: Product[] }>("/demo/catalog"),
-    staleTime: Infinity,
-  });
-
   const products = useMemo(
     () =>
-      (data?.products ?? []).filter(
+      MOCK_PRODUCTS.filter(
         (p) => (!category || p.category_id === category) && (!q || p.name.toLowerCase().includes(q.toLowerCase())),
       ),
-    [data, category, q],
+    [category, q],
   );
   const total = lines.reduce((s, l) => s + toNumber(l.product.price) * l.qty, 0);
   const items = lines.reduce((s, l) => s + l.qty, 0);
@@ -101,7 +94,7 @@ export default function DemoPage() {
           <div className="space-y-3 border-b border-border p-3">
             <SearchInput value={q} onChange={setQ} placeholder="Cari produk…" delay={100} />
             <div className="flex gap-2 overflow-x-auto">
-              {[{ id: null as number | null, name: "Semua", color: null as string | null }, ...(data?.categories ?? [])].map((c) => (
+              {[{ id: null as number | null, name: "Semua", color: null as string | null }, ...MOCK_CATEGORIES].map((c) => (
                 <button
                   key={c.id ?? "all"}
                   onClick={() => setCategory(c.id)}
@@ -114,11 +107,7 @@ export default function DemoPage() {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            {isLoading ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-[4/5] rounded-xl" />)}
-              </div>
-            ) : !products.length ? (
+            {!products.length ? (
               <EmptyState icon={Package} title="Produk tidak ditemukan" />
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
