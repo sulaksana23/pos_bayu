@@ -2,14 +2,20 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   ArrowRight,
   BarChart3,
   Boxes,
+  Clock,
   Cookie,
   CupSoda,
+  Eye,
+  EyeOff,
+  Lock,
   LayoutDashboard,
   LayoutGrid,
+  LogOut,
   Minus,
   Package,
   PenTool,
@@ -22,21 +28,25 @@ import {
   Sparkles,
   SprayCan,
   Trash2,
+  UserRound,
   UsersRound,
   UtensilsCrossed,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import type { PaymentMethod, Product, Transaction } from "@/lib/types";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mock-catalog";
-import { cn, PAYMENT_LABELS, rupiah, toNumber } from "@/lib/utils";
+import { cn, PAYMENT_LABELS, rupiah, time, toNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { Field, Input, MoneyInput } from "@/components/ui/input";
 import { SearchInput } from "@/components/ui/misc";
 import { Logo, ThemeToggle } from "@/components/layout/app-shell";
 import { PaymentModal } from "@/components/pos/payment-modal";
 import { Receipt } from "@/components/pos/receipt";
 
 type Line = { product: Product; qty: number };
+type Stage = "login" | "open" | "cashier";
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   UtensilsCrossed,
@@ -56,9 +66,129 @@ const FULL_APP_FEATURES = [
   { icon: BarChart3, label: "Laporan lengkap & ekspor data" },
 ];
 
+const CASH_PRESETS = [0, 100000, 200000, 500000];
+
 function CategoryIcon({ icon, className, style }: { icon: string | null | undefined; className?: string; style?: React.CSSProperties }) {
   const Icon = (icon && CATEGORY_ICONS[icon]) || Package;
   return <Icon className={className} style={style} />;
+}
+
+function GateCard({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-bg p-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <div className={cn("w-full animate-slide-up rounded-2xl border border-border bg-surface p-6 shadow-xl sm:p-8", wide ? "max-w-md" : "max-w-sm")}>
+        <Logo className="mb-6" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function LoginGate({ onSubmit }: { onSubmit: (username: string) => void }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim() || !password.trim()) {
+      setError("Username dan password wajib diisi.");
+      return;
+    }
+    toast.success(`Selamat datang, ${username.trim()}!`);
+    onSubmit(username.trim());
+  };
+
+  return (
+    <GateCard>
+      <h1 className="text-lg font-semibold">Masuk ke Kasir Demo</h1>
+      <p className="mt-1 mb-6 text-sm text-muted">Simulasi login — isi bebas, tidak dicek ke server mana pun.</p>
+      <form onSubmit={submit} className="space-y-4">
+        <Field label="Username" error={username || !error ? undefined : error} required>
+          <div className="relative">
+            <UserRound className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
+            <Input autoFocus value={username} onChange={(e) => setUsername(e.target.value)} placeholder="kasir1" className="h-11 pl-9" />
+          </div>
+        </Field>
+        <Field label="Password" required>
+          <div className="relative">
+            <Lock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
+            <Input type={show ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="h-11 pr-10 pl-9" />
+            <button type="button" onClick={() => setShow((v) => !v)} className="absolute top-1/2 right-3 -translate-y-1/2 text-muted hover:text-fg" aria-label="Tampilkan password">
+              {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
+        </Field>
+        {error && <p className="text-xs text-red-500">{error}</p>}
+        <Button type="submit" size="lg" className="w-full">
+          Masuk
+        </Button>
+        <button
+          type="button"
+          onClick={() => {
+            setUsername("kasir1");
+            setPassword("demo1234");
+          }}
+          className="w-full text-center text-xs text-muted hover:text-fg"
+        >
+          Isi otomatis dengan akun contoh
+        </button>
+      </form>
+    </GateCard>
+  );
+}
+
+function OpenRegisterGate({ cashierName, onOpen, onBack }: { cashierName: string; onOpen: (cash: number) => void; onBack: () => void }) {
+  const [cash, setCash] = useState(0);
+
+  return (
+    <GateCard>
+      <div className="mb-5 flex items-center gap-3">
+        <span className="grid size-11 place-items-center rounded-xl bg-amber-500/10 text-amber-600">
+          <Clock className="size-5" />
+        </span>
+        <div>
+          <h1 className="text-lg font-semibold">Buka Kasir</h1>
+          <p className="text-sm text-muted">Halo, {cashierName} — masukkan modal awal di laci.</p>
+        </div>
+      </div>
+      <Field label="Uang modal awal">
+        <MoneyInput value={cash} onChange={setCash} autoFocus onFocus={(e) => e.target.select()} />
+      </Field>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {CASH_PRESETS.map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setCash(v)}
+            className={cn(
+              "rounded-lg border px-3 py-1.5 text-xs font-medium",
+              cash === v ? "border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-400" : "border-border hover:bg-surface-2",
+            )}
+          >
+            {v === 0 ? "Rp 0" : rupiah(v)}
+          </button>
+        ))}
+      </div>
+      <Button
+        size="lg"
+        className="mt-5 w-full"
+        onClick={() => {
+          onOpen(cash);
+          toast.success("Kasir dibuka. Selamat bertugas!");
+        }}
+      >
+        Buka Kasir
+      </Button>
+      <button type="button" onClick={onBack} className="mt-3 w-full text-center text-xs text-muted hover:text-fg">
+        Bukan Anda? Ganti akun
+      </button>
+    </GateCard>
+  );
 }
 
 function ProductTile({ product, qtyInCart, popular, onAdd }: { product: Product; qtyInCart: number; popular: boolean; onAdd: () => void }) {
@@ -112,6 +242,13 @@ function ProductTile({ product, qtyInCart, popular, onAdd }: { product: Product;
 
 /** Public cashier demo (embedded on the main website / shown before login). Nothing is saved. */
 export default function DemoPage() {
+  const [stage, setStage] = useState<Stage>("login");
+  const [cashierName, setCashierName] = useState("");
+  const [openingCash, setOpeningCash] = useState(0);
+  const [openedAt, setOpenedAt] = useState<string | null>(null);
+  const [sessionStats, setSessionStats] = useState({ count: 0, totalSales: 0, totalCash: 0 });
+  const [closing, setClosing] = useState(false);
+
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<number | null>(null);
   const [lines, setLines] = useState<Line[]>([]);
@@ -130,10 +267,29 @@ export default function DemoPage() {
 
   const total = lines.reduce((s, l) => s + toNumber(l.product.price) * l.qty, 0);
   const items = lines.reduce((s, l) => s + l.qty, 0);
+  const expectedCash = openingCash + sessionStats.totalCash;
 
   const add = (p: Product) =>
     setLines((ls) => (ls.some((l) => l.product.id === p.id) ? ls.map((l) => (l.product.id === p.id ? { ...l, qty: l.qty + 1 } : l)) : [...ls, { product: p, qty: 1 }]));
   const setQty = (id: number, qty: number) => setLines((ls) => (qty <= 0 ? ls.filter((l) => l.product.id !== id) : ls.map((l) => (l.product.id === id ? { ...l, qty } : l))));
+
+  const openRegister = (cash: number) => {
+    setOpeningCash(cash);
+    setOpenedAt(new Date().toISOString());
+    setSessionStats({ count: 0, totalSales: 0, totalCash: 0 });
+    setStage("cashier");
+  };
+
+  const closeRegister = () => {
+    setClosing(false);
+    setStage("login");
+    setCashierName("");
+    setOpeningCash(0);
+    setOpenedAt(null);
+    setSessionStats({ count: 0, totalSales: 0, totalCash: 0 });
+    setLines([]);
+    toast.success("Kasir ditutup. Sampai jumpa lagi!");
+  };
 
   const pay = ({ method, paid }: { method: PaymentMethod; paid: number }) => {
     const now = new Date().toISOString();
@@ -143,7 +299,7 @@ export default function DemoPage() {
       shift_id: 0,
       user_id: 0,
       customer_id: null,
-      cashier: { id: 0, name: "Kasir Demo" },
+      cashier: { id: 0, name: cashierName || "Kasir Demo" },
       subtotal: String(total),
       discount: "0",
       tax: "0",
@@ -168,9 +324,29 @@ export default function DemoPage() {
         subtotal: String(toNumber(l.product.price) * l.qty),
       })),
     });
+    setSessionStats((s) => ({
+      count: s.count + 1,
+      totalSales: s.totalSales + total,
+      totalCash: s.totalCash + (method === "cash" ? total : 0),
+    }));
     setPaying(false);
     setLines([]);
   };
+
+  if (stage === "login") {
+    return (
+      <LoginGate
+        onSubmit={(username) => {
+          setCashierName(username);
+          setStage("open");
+        }}
+      />
+    );
+  }
+
+  if (stage === "open") {
+    return <OpenRegisterGate cashierName={cashierName} onOpen={openRegister} onBack={() => setStage("login")} />;
+  }
 
   const cartPanel = (
     <>
@@ -264,16 +440,18 @@ export default function DemoPage() {
     <div className="flex h-dvh flex-col overflow-hidden bg-bg">
       <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-surface/90 px-4 backdrop-blur-md sm:px-5">
         <Logo />
-        <span className="ml-1 hidden items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 sm:inline-flex dark:text-amber-400">
-          <Sparkles className="size-3.5" /> Demo interaktif — data tidak disimpan
+        <span className="ml-1 hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 sm:inline-flex dark:text-emerald-400">
+          <span className="relative flex size-1.5">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+          </span>
+          Kasir {cashierName} · sejak {time(openedAt)} · {rupiah(sessionStats.totalSales)}
         </span>
         <div className="flex-1" />
         <ThemeToggle />
-        <Link href="/login" target="_top">
-          <Button size="sm" className="gap-1.5">
-            Masuk <ArrowRight className="size-3.5" />
-          </Button>
-        </Link>
+        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setClosing(true)}>
+          <LogOut className="size-3.5" /> Tutup Kasir
+        </Button>
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
@@ -384,6 +562,97 @@ export default function DemoPage() {
           </div>
         )}
       </Modal>
+
+      <CloseRegisterModal
+        open={closing}
+        onClose={() => setClosing(false)}
+        cashierName={cashierName}
+        openedAt={openedAt}
+        openingCash={openingCash}
+        stats={sessionStats}
+        expectedCash={expectedCash}
+        onConfirm={closeRegister}
+      />
     </div>
+  );
+}
+
+function CloseRegisterModal({
+  open,
+  onClose,
+  cashierName,
+  openedAt,
+  openingCash,
+  stats,
+  expectedCash,
+  onConfirm,
+}: {
+  open: boolean;
+  onClose: () => void;
+  cashierName: string;
+  openedAt: string | null;
+  openingCash: number;
+  stats: { count: number; totalSales: number; totalCash: number };
+  expectedCash: number;
+  onConfirm: () => void;
+}) {
+  const [actual, setActual] = useState(expectedCash);
+  // Re-sync the actual-cash input each time the modal is (re)opened, adjusted during
+  // render rather than in an effect to avoid an extra render pass.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setActual(expectedCash);
+  }
+  const diff = actual - expectedCash;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Tutup Kasir"
+      description={`${cashierName} · dibuka sejak ${time(openedAt)}`}
+      size="sm"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            Batal
+          </Button>
+          <Button variant="danger" onClick={onConfirm}>
+            Tutup Kasir
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {[
+            ["Transaksi", String(stats.count)],
+            ["Total penjualan", rupiah(stats.totalSales)],
+            ["Penjualan tunai", rupiah(stats.totalCash)],
+            ["Modal awal", rupiah(openingCash)],
+          ].map(([l, v]) => (
+            <div key={l} className="rounded-lg bg-surface-2 px-3 py-2">
+              <p className="text-xs text-muted">{l}</p>
+              <p className="tabular font-semibold">{v}</p>
+            </div>
+          ))}
+        </div>
+        <Field label="Uang tunai aktual di laci">
+          <MoneyInput value={actual} onChange={setActual} autoFocus onFocus={(e) => e.target.select()} />
+        </Field>
+        <div
+          className={cn(
+            "flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium",
+            diff === 0 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : diff > 0 ? "bg-sky-500/10 text-sky-700 dark:text-sky-400" : "bg-red-500/10 text-red-700 dark:text-red-400",
+          )}
+        >
+          <span className="flex items-center gap-1.5">
+            <Wallet className="size-4" /> Kas seharusnya {rupiah(expectedCash)}
+          </span>
+          <span>{diff === 0 ? "Sesuai ✓" : diff > 0 ? `Lebih ${rupiah(diff)}` : `Kurang ${rupiah(Math.abs(diff))}`}</span>
+        </div>
+      </div>
+    </Modal>
   );
 }
