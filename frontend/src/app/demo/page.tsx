@@ -1,10 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
 import {
-  ArrowRight,
   BarChart3,
   Boxes,
   Clock,
@@ -27,6 +25,7 @@ import {
   ShoppingCart,
   Sparkles,
   SprayCan,
+  Tag,
   Trash2,
   UserRound,
   UsersRound,
@@ -43,6 +42,7 @@ import { Field, Input, MoneyInput } from "@/components/ui/input";
 import { SearchInput } from "@/components/ui/misc";
 import { Logo, ThemeToggle } from "@/components/layout/app-shell";
 import { PaymentModal } from "@/components/pos/payment-modal";
+import { PricingModal } from "@/components/pos/pricing-modal";
 import { Receipt } from "@/components/pos/receipt";
 
 type Line = { product: Product; qty: number };
@@ -87,7 +87,7 @@ function GateCard({ children, wide }: { children: React.ReactNode; wide?: boolea
   );
 }
 
-function LoginGate({ onSubmit }: { onSubmit: (username: string) => void }) {
+function LoginGate({ onSubmit, onShowPricing }: { onSubmit: (username: string) => void; onShowPricing: () => void }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -138,6 +138,9 @@ function LoginGate({ onSubmit }: { onSubmit: (username: string) => void }) {
           Isi otomatis dengan akun contoh
         </button>
       </form>
+      <button type="button" onClick={onShowPricing} className="mt-4 flex w-full items-center justify-center gap-1.5 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">
+        <Tag className="size-3.5" /> Mau pakai data toko sendiri? Lihat harga
+      </button>
     </GateCard>
   );
 }
@@ -248,6 +251,7 @@ export default function DemoPage() {
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   const [sessionStats, setSessionStats] = useState({ count: 0, totalSales: 0, totalCash: 0 });
   const [closing, setClosing] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
 
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<number | null>(null);
@@ -335,17 +339,26 @@ export default function DemoPage() {
 
   if (stage === "login") {
     return (
-      <LoginGate
-        onSubmit={(username) => {
-          setCashierName(username);
-          setStage("open");
-        }}
-      />
+      <>
+        <LoginGate
+          onSubmit={(username) => {
+            setCashierName(username);
+            setStage("open");
+          }}
+          onShowPricing={() => setPricingOpen(true)}
+        />
+        <PricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} />
+      </>
     );
   }
 
   if (stage === "open") {
-    return <OpenRegisterGate cashierName={cashierName} onOpen={openRegister} onBack={() => setStage("login")} />;
+    return (
+      <>
+        <OpenRegisterGate cashierName={cashierName} onOpen={openRegister} onBack={() => setStage("login")} />
+        <PricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} />
+      </>
+    );
   }
 
   const cartPanel = (
@@ -386,11 +399,9 @@ export default function DemoPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/login" target="_top">
-                <Button variant="outline" size="sm" className="mt-3.5 w-full gap-1.5">
-                  Coba fitur lengkap <ArrowRight className="size-3.5" />
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" className="mt-3.5 w-full gap-1.5" onClick={() => setPricingOpen(true)}>
+                <Tag className="size-3.5" /> Lihat harga & lisensi
+              </Button>
             </div>
           </div>
         ) : (
@@ -448,6 +459,9 @@ export default function DemoPage() {
           Kasir {cashierName} · sejak {time(openedAt)} · {rupiah(sessionStats.totalSales)}
         </span>
         <div className="flex-1" />
+        <Button size="sm" variant="ghost" className="hidden gap-1.5 sm:inline-flex" onClick={() => setPricingOpen(true)}>
+          <Tag className="size-3.5" /> Harga & Lisensi
+        </Button>
         <ThemeToggle />
         <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setClosing(true)}>
           <LogOut className="size-3.5" /> Tutup Kasir
@@ -533,11 +547,9 @@ export default function DemoPage() {
             <Button variant="outline" onClick={() => setReceipt(null)}>
               Coba lagi
             </Button>
-            <Link href="/login" target="_top" className="sm:contents">
-              <Button className="w-full gap-1.5 sm:w-auto">
-                Coba fitur lengkap <ArrowRight className="size-3.5" />
-              </Button>
-            </Link>
+            <Button className="w-full gap-1.5 sm:w-auto" onClick={() => setPricingOpen(true)}>
+              <Tag className="size-3.5" /> Lihat harga & lisensi
+            </Button>
           </div>
         }
       >
@@ -573,6 +585,8 @@ export default function DemoPage() {
         expectedCash={expectedCash}
         onConfirm={closeRegister}
       />
+
+      <PricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} />
     </div>
   );
 }
