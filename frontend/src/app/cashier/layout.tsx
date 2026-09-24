@@ -1,0 +1,8 @@
+import type { Metadata } from "next";
+import { AuthGuard } from "@/components/layout/auth-guard";
+
+export const metadata: Metadata = { title: "Kasir" };
+
+export default function CashierLayout({ children }: { children: React.ReactNode }) {
+  return <AuthGuard>{children}</AuthGuard>;
+}
