@@ -3,7 +3,7 @@ import type { Category, Product } from "./types";
 /**
  * Static sample catalog for the public demo cashier (`/demo`) — used while
  * no backend is connected. Swap `/demo` to fetch `/api/demo/catalog` once
- * a real API is available (see components/pos frontend/README.md).
+ * a real API is available (see components/pos and README.md).
  */
 export const MOCK_CATEGORIES: Category[] = [
   { id: 1, name: "Makanan", slug: "makanan", description: null, color: "#f97316", icon: "UtensilsCrossed", sort_order: 1, is_active: true },
